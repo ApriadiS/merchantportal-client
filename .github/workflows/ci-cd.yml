@@ -1,60 +1,58 @@
-
 name: CI/CD Merchant Portal Client
 
 on:
-  push:
-    branches:
-      - main
-  push:
-    tags:
-      - '*.*.0'
+   push:
+      branches:
+         - main
+      tags:
+         - "*.*.0"
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout kode
-        uses: actions/checkout@v4
+   build:
+      runs-on: ubuntu-latest
+      steps:
+         - name: Checkout kode
+           uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: "22"
+         - name: Setup Node.js
+           uses: actions/setup-node@v4
+           with:
+              node-version: "22"
 
-      - name: Install dependencies
-        run: npm install
+         - name: Install dependencies
+           run: npm install
 
-      - name: Build aplikasi
-        run: npm run build
+         - name: Build aplikasi
+           run: npm run build
 
-      - name: Jalankan test (jika ada)
-        run: npm test || echo "Tidak ada test"
+         - name: Jalankan test (jika ada)
+           run: npm test || echo "Tidak ada test"
 
-      - name: Tag versi
-        if: github.ref == 'refs/heads/main'
-        run: |
-          git config user.name "github-actions"
-          git config user.email "github-actions@github.com"
-          git tag v1.0.0 || echo "Tag sudah ada"
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+         - name: Tag versi
+           if: github.ref == 'refs/heads/main'
+           run: |
+              git config user.name "github-actions"
+              git config user.email "github-actions@github.com"
+              git tag v1.0.0 || echo "Tag sudah ada"
+           env:
+              GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  docker:
-    if: startsWith(github.ref, 'refs/tags/') && endsWith(github.ref, '.0')
-    runs-on: ubuntu-latest
-    needs: build
-    steps:
-      - name: Checkout kode
-        uses: actions/checkout@v4
+   docker:
+      if: startsWith(github.ref, 'refs/tags/') && endsWith(github.ref, '.0')
+      runs-on: ubuntu-latest
+      needs: build
+      steps:
+         - name: Checkout kode
+           uses: actions/checkout@v4
 
-      - name: Login ke Docker Hub
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
+         - name: Login ke Docker Hub
+           uses: docker/login-action@v3
+           with:
+              username: ${{ secrets.DOCKERHUB_USERNAME }}
+              password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Build dan Push Docker image ke Docker Hub
-        run: |
-          TAG_NAME=$(echo "${GITHUB_REF}" | sed 's|refs/tags/||')
-          docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/my-app:merchantportal-client-v$TAG_NAME .
-          docker push ${{ secrets.DOCKERHUB_USERNAME }}/my-app:merchantportal-client-v$TAG_NAME
+         - name: Build dan Push Docker image ke Docker Hub
+           run: |
+              TAG_NAME=$(echo "${GITHUB_REF}" | sed 's|refs/tags/||')
+              docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/my-app:merchantportal-client-v$TAG_NAME .
+              docker push ${{ secrets.DOCKERHUB_USERNAME }}/my-app:merchantportal-client-v$TAG_NAME
