@@ -1,79 +1,77 @@
 name: CI/CD Merchant Portal Client
 
 on:
-  push:
-    branches:
-      - main
-    tags:
-      - "v*.*.*" # Memicu untuk semua tag yang diawali v, contoh: v1.0.0, v1.2.3
+   push:
+      tags:
+         - "v*.*.0" # Memicu untuk semua tag yang diawali v, contoh: v1.0.0, v1.2.3
 
 jobs:
-  # Job ini hanya untuk memeriksa kode di branch 'main'
-  test_and_lint:
-    if: github.ref == 'refs/heads/main'
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout kode
-        uses: actions/checkout@v4
+   # Job ini hanya untuk memeriksa kode di branch 'main'
+   test_and_lint:
+      if: github.ref == 'refs/heads/main'
+      runs-on: ubuntu-latest
+      steps:
+         - name: Checkout kode
+           uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: "22"
-          cache: "npm" # Menambahkan caching untuk instalasi lebih cepat
+         - name: Setup Node.js
+           uses: actions/setup-node@v4
+           with:
+              node-version: "22"
+              cache: "npm" # Menambahkan caching untuk instalasi lebih cepat
 
-      - name: Install dependencies
-        run: npm ci || echo "Install failed" # Jangan hentikan workflow jika instalasi gagal
+         - name: Install dependencies
+           run: npm ci || echo "Install failed" # Jangan hentikan workflow jika instalasi gagal
 
-      - name: Jalankan test
-        run: npm test || echo "Tests failed" # Jangan hentikan workflow jika test gagal
+         - name: Jalankan test
+           run: npm test || echo "Tests failed" # Jangan hentikan workflow jika test gagal
 
-  # Job ini berjalan HANYA saat ada tag baru yang di-push
-  build_and_deploy:
-    if: startsWith(github.ref, 'refs/tags/v') # Pastikan job ini hanya berjalan untuk tag
-    runs-on: ubuntu-latest
-    # Menambahkan permissions untuk beberapa action
-    permissions:
-      contents: read
-      packages: write
+   # Job ini berjalan HANYA saat ada tag baru yang di-push
+   build_and_deploy:
+      if: startsWith(github.ref, 'refs/tags/v') # Pastikan job ini hanya berjalan untuk tag
+      runs-on: ubuntu-latest
+      # Menambahkan permissions untuk beberapa action
+      permissions:
+         contents: read
+         packages: write
 
-    steps:
-      - name: Checkout kode
-        uses: actions/checkout@v4
+      steps:
+         - name: Checkout kode
+           uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: "22"
-          cache: "npm"
+         - name: Setup Node.js
+           uses: actions/setup-node@v4
+           with:
+              node-version: "22"
+              cache: "npm"
 
-      - name: Install dependencies
-        run: npm ci
+         - name: Install dependencies
+           run: npm ci
 
-      - name: Build aplikasi
-        run: npm run build
+         - name: Build aplikasi
+           run: npm run build
 
-      - name: Upload artifact hasil build
-        uses: actions/upload-artifact@v4
-        with:
-          name: production-files # Nama artifact
-          path: ./dist # Ganti './dist' dengan direktori output build Anda (misal: build, out)
+         - name: Upload artifact hasil build
+           uses: actions/upload-artifact@v4
+           with:
+              name: production-files # Nama artifact
+              path: ./dist # Ganti './dist' dengan direktori output build Anda (misal: build, out)
 
-      - name: Login ke Docker Hub
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
+         - name: Login ke Docker Hub
+           uses: docker/login-action@v3
+           with:
+              username: ${{ secrets.DOCKERHUB_USERNAME }}
+              password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Ekstrak versi dari tag
-        id: get_version
-        run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+         - name: Ekstrak versi dari tag
+           id: get_version
+           run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
 
-      - name: Build dan Push Docker image
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          push: true
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/myapp:merchantportal-client-${{ steps.get_version.outputs.VERSION }}
-          # Perhatikan: Aksi ini lebih canggih dan direkomendasikan daripada menjalankan perintah 'docker build' manual.
-          # Aksi ini akan menggunakan Dockerfile di root repo Anda.
+         - name: Build dan Push Docker image
+           uses: docker/build-push-action@v5
+           with:
+              context: .
+              push: true
+              tags: ${{ secrets.DOCKERHUB_USERNAME }}/my-app:merchantportal-client-${{ steps.get_version.outputs.VERSION }}
+              # Perhatikan: Aksi ini lebih canggih dan direkomendasikan daripada menjalankan perintah 'docker build' manual.
+              # Aksi ini akan menggunakan Dockerfile di root repo Anda.
