@@ -9,6 +9,8 @@
    import NotFoundPage from "./pages/NotFoundPage.svelte";
 
    import { log } from "./lib/core/utils/logger";
+   import { onMount } from "svelte";
+   import { initAnalytics } from "./lib/core/utils/analytics";
    import ForgotPasswordPage from "./pages/ForgotPasswordPage.svelte";
    // Auth state
    const isAuthenticated = writable(false);
@@ -24,6 +26,9 @@
       navigate("/admin");
    }
    log("App.svelte loaded");
+   onMount(() => {
+      initAnalytics();
+   });
 </script>
 
 <Router>
