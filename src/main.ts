@@ -1,11 +1,11 @@
 import { mount } from "svelte";
 import "./app.css";
 import App from "./App.svelte";
-import { log } from "./lib/logger";
+import { log } from "./lib/core/utils/logger";
 
 log("Initializing Svelte app");
 const app = mount(App, {
-   target: document.getElementById("app")!,
+  target: document.getElementById("app")!,
 });
 log("App mounted");
 
