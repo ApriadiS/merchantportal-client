@@ -28,4 +28,4 @@ dist-ssr
 
 # Github Copilot
 copilot-instructions.md
-.github/
+commit.txt
