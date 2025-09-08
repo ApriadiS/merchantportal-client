@@ -5,10 +5,12 @@ on:
       branches:
          - main
       tags:
-         - "*.*.0"
+         - "v*.*.*" # Memicu untuk semua tag yang diawali v, contoh: v1.0.0, v1.2.3
 
 jobs:
-   build:
+   # Job ini hanya untuk memeriksa kode di branch 'main'
+   test_and_lint:
+      if: github.ref == 'refs/heads/main'
       runs-on: ubuntu-latest
       steps:
          - name: Checkout kode
@@ -18,32 +20,48 @@ jobs:
            uses: actions/setup-node@v4
            with:
               node-version: "22"
+              cache: "npm" # Menambahkan caching untuk instalasi lebih cepat
 
          - name: Install dependencies
-           run: npm install
+           run: npm ci # 'ci' lebih cepat dan konsisten untuk CI
+
+         - name: Jalankan test
+           run: npm test
+
+         # Tambahkan langkah lain jika perlu, misalnya linting
+         # - name: Run Linter
+         #   run: npm run lint
+
+   # Job ini berjalan HANYA saat ada tag baru yang di-push
+   build_and_deploy:
+      if: startsWith(github.ref, 'refs/tags/v') # Pastikan job ini hanya berjalan untuk tag
+      runs-on: ubuntu-latest
+      # Menambahkan permissions untuk beberapa action
+      permissions:
+         contents: read
+         packages: write
+
+      steps:
+         - name: Checkout kode
+           uses: actions/checkout@v4
+
+         - name: Setup Node.js
+           uses: actions/setup-node@v4
+           with:
+              node-version: "22"
+              cache: "npm"
+
+         - name: Install dependencies
+           run: npm ci
 
          - name: Build aplikasi
            run: npm run build
 
-         - name: Jalankan test (jika ada)
-           run: npm test || echo "Tidak ada test"
-
-         - name: Tag versi
-           if: github.ref == 'refs/heads/main'
-           run: |
-              git config user.name "github-actions"
-              git config user.email "github-actions@github.com"
-              git tag v1.0.0 || echo "Tag sudah ada"
-           env:
-              GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-   docker:
-      if: startsWith(github.ref, 'refs/tags/') && endsWith(github.ref, '.0')
-      runs-on: ubuntu-latest
-      needs: build
-      steps:
-         - name: Checkout kode
-           uses: actions/checkout@v4
+         - name: Upload artifact hasil build
+           uses: actions/upload-artifact@v4
+           with:
+              name: production-files # Nama artifact
+              path: ./dist # Ganti './dist' dengan direktori output build Anda (misal: build, out)
 
          - name: Login ke Docker Hub
            uses: docker/login-action@v3
@@ -51,8 +69,15 @@ jobs:
               username: ${{ secrets.DOCKERHUB_USERNAME }}
               password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-         - name: Build dan Push Docker image ke Docker Hub
-           run: |
-              TAG_NAME=$(echo "${GITHUB_REF}" | sed 's|refs/tags/||')
-              docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/my-app:merchantportal-client-v$TAG_NAME .
-              docker push ${{ secrets.DOCKERHUB_USERNAME }}/my-app:merchantportal-client-v$TAG_NAME
+         - name: Ekstrak versi dari tag
+           id: get_version
+           run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+
+         - name: Build dan Push Docker image
+           uses: docker/build-push-action@v5
+           with:
+              context: .
+              push: true
+              tags: ${{ secrets.DOCKERHUB_USERNAME }}/myapp:merchantportal-client-${{ steps.get_version.outputs.VERSION }}
+              # Perhatikan: Aksi ini lebih canggih dan direkomendasikan daripada menjalankan perintah 'docker build' manual.
+              # Aksi ini akan menggunakan Dockerfile di root repo Anda.
