@@ -1,7 +1,7 @@
 <script lang="ts">
-import { log } from '../lib/logger';
-log('NotFoundPage loaded');
-// Halaman fallback untuk route yang tidak dikenali
+  import { log } from "../lib/core/utils/logger";
+  log("NotFoundPage loaded");
+  // Halaman fallback untuk route yang tidak dikenali
 </script>
 
 <div class="min-h-screen flex items-center justify-center bg-[#fff1f1]">
