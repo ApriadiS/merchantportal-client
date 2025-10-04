@@ -1,0 +1,17 @@
+{
+   // Disable the built-in CSS/SCSS/LESS validator in VS Code because this
+   // project uses Tailwind/PostCSS directives (e.g. @apply, @plugin, @theme)
+   // which are not recognized by the default language service and cause
+   // "unknown at rule" warnings in the editor.
+   "css.validate": false,
+   "scss.validate": false,
+   "less.validate": false,
+
+   // Enable Tailwind CSS language features if the Tailwind extension is
+   // installed (we recommend the extension in extensions.json below).
+   "tailwindCSS.includeLanguages": {
+      "typescript": "javascript",
+      "typescriptreact": "javascript",
+      "javascriptreact": "javascript"
+   }
+}
