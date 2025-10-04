@@ -1,12 +1,12 @@
 "use client";
 import React from "react";
-import { Button } from "@components/ui/shadcn/button";
+import { Button } from "@/components/ui/button";
 import {
    Card as ShadCard,
    CardHeader as ShadCardHeader,
    CardTitle as ShadCardTitle,
    CardContent as ShadCardContent,
-} from "@components/ui/shadcn/card";
+} from "@/components/ui/card";
 import type { PromoResponse } from "@/utils/interface";
 import type { StoreResponse } from "@/utils/interface";
 import { formatCurrency, formatPercent, formatAdmin } from "@/utils/format";

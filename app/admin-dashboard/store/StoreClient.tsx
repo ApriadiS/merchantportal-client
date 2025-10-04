@@ -3,15 +3,15 @@ import { useEffect, useState } from "react";
 import type { StoreResponse } from "@/utils/interface";
 import Loading from "@components/shared/Loading";
 import ModalDelete from "@components/shared/ModalDelete";
-import { Button } from "@components/ui/shadcn/button";
+import { Button } from "@/components/ui/button";
 import {
    Card as ShadCard,
    CardHeader as ShadCardHeader,
    CardContent as ShadCardContent,
-} from "@components/ui/shadcn/card";
-import { useToast } from "@components/ui/Toast";
+} from "@/components/ui/card";
+import { useToast } from "@components/hooks/useToast";
 import { getAllStores, deleteStore } from "@services/database/client/stores";
-import { Input } from "@components/ui/shadcn/input";
+import { Input } from "@/components/ui/input";
 import StoreFormModal from "@components/Store/StoreFormModal";
 
 export default function StoreClient() {
@@ -25,7 +25,7 @@ export default function StoreClient() {
    const [filterRoute, setFilterRoute] = useState("");
    const [isCreateOpen, setIsCreateOpen] = useState(false);
    const [editingStore, setEditingStore] = useState<StoreResponse | null>(null);
-   const toast = useToast();
+   const { push: pushToast } = useToast();
 
    const STORAGE_KEY = "store:list:filters";
 
@@ -88,10 +88,10 @@ export default function StoreClient() {
          setStores(rows);
          setIsDeleteOpen(false);
          setDeleteTarget(null);
-         toast.push({ type: "success", message: "Store berhasil dihapus" });
+         pushToast({ type: "success", message: "Store berhasil dihapus" });
       } catch (err) {
          console.error("deleteStore failed", err);
-         toast.push({ type: "error", message: "Gagal menghapus store" });
+         pushToast({ type: "error", message: "Gagal menghapus store" });
       }
    };
 

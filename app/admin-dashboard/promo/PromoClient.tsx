@@ -2,18 +2,18 @@
 import React, { useEffect, useState } from "react";
 import Loading from "@components/shared/Loading";
 import ModalDelete from "@components/shared/ModalDelete";
-import { Button } from "@components/ui/shadcn/button";
+import { Button } from "@/components/ui/button";
 import {
    Card as ShadCard,
    CardHeader as ShadCardHeader,
    CardContent as ShadCardContent,
-} from "@components/ui/shadcn/card";
-import { Input } from "@components/ui/shadcn/input";
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import PromoFormModal from "@components/Promo/PromoFormModal";
 import PromoViewModal from "@components/Promo/PromoViewModal";
 import type { PromoResponse, StoreResponse } from "@/utils/interface";
 import { formatCurrency, formatPercent, formatAdmin } from "@/utils/format";
-import { useToast } from "@components/ui/Toast";
+import { useToast } from "@components/hooks/useToast";
 // supabaseClient usage replaced by service wrappers below
 import {
    getAllPromos,
@@ -42,7 +42,7 @@ export default function PromoClient() {
    const [q, setQ] = useState("");
    const [filterAdminType, setFilterAdminType] = useState<string | "">("");
    const [filterActive, setFilterActive] = useState<boolean | "">("");
-   const toast = useToast();
+   const { push } = useToast();
    const STORAGE_KEY = "promo:list:filters";
 
    const resetFilters = () => {
@@ -188,13 +188,13 @@ export default function PromoClient() {
          setPromos((prev) => prev.filter((s) => s.id_promo !== id));
          setIsDeleteOpen(false);
          setDeleteTarget(null);
-         toast.push({ type: "success", message: "Promo berhasil dihapus" });
+         push({ type: "success", message: "Promo berhasil dihapus" });
          // refetch lists
          await refetchPromos();
          await refetchPromoStores();
       } catch (err) {
          console.error("deletePromo failed", err);
-         toast.push({ type: "error", message: "Gagal menghapus promo" });
+         push({ type: "error", message: "Gagal menghapus promo" });
       }
    };
 

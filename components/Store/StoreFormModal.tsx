@@ -1,12 +1,11 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import { Button } from "@components/ui/shadcn/button";
-import { Input } from "@components/ui/shadcn/input";
-import { RadioGroup, RadioGroupItem } from "@components/ui/shadcn/radio-group";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import type { StoreRequest, StoreResponse } from "@/utils/interface";
 import { createStore, updateStore } from "@services/database/client/stores";
-import { useToast } from "@components/ui/Toast";
-// ...existing code...
+import { useToast } from "@components/hooks/useToast";
 
 interface Props {
    open: boolean;
@@ -29,7 +28,7 @@ export default function StoreFormModal({
    const [route, setRoute] = useState("");
    const [type, setType] = useState("KA");
    const [loading, setLoading] = useState(false);
-   const toast = useToast();
+   const { push } = useToast();
    const [errors, setErrors] = useState<Record<string, string>>({});
 
    // Using supabase client directly instead of Refine mutations
@@ -79,7 +78,7 @@ export default function StoreFormModal({
                ...payload,
             } as StoreResponse;
             onUpdated?.(updated);
-            toast.push({
+            push({
                type: "success",
                message: "Store berhasil diperbarui",
             });
@@ -88,7 +87,7 @@ export default function StoreFormModal({
             const created = await createStore(payload);
             // create mutation will update refine list; return created-like payload
             onCreated?.(created as StoreResponse);
-            toast.push({
+            push({
                type: "success",
                message: "Store berhasil dibuat",
             });
@@ -97,7 +96,7 @@ export default function StoreFormModal({
          onClose();
       } catch (err) {
          console.error(err);
-         toast.push({ type: "error", message: "Gagal menyimpan store" });
+         push({ type: "error", message: "Gagal menyimpan store" });
       } finally {
          setLoading(false);
       }
