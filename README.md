@@ -1,51 +1,36 @@
-# Merchant Portal Client
+This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
-Aplikasi web Merchant Portal berbasis **Svelte murni** + **TypeScript** + **Vite** untuk manajemen toko dan promo secara efisien. Project ini menggunakan pendekatan Client-Side Rendering (CSR) tanpa SvelteKit.
+## Getting Started
 
-## Fitur Utama
-
-- Manajemen data toko (tambah, edit, hapus, upload CSV)
-- Manajemen promo (tambah, edit, hapus, upload CSV)
-- Autentikasi admin
-- Upload data via modal
-- Navigasi SPA dengan client-side routing
-- UI modern dan responsif
-
-## Struktur Proyek
-
-- `src/components/` — Komponen utama aplikasi (admin, promo, store)
-- `src/pages/` — Halaman utama (Dashboard, Login, Home, dll)
-- `src/lib/` — Komponen reusable & utilitas
-- `src/core/` — Logika bisnis, API, types, dan utils
-- `public/` — Aset statis (gambar, font, template CSV)
-
-## Instalasi & Menjalankan
+First, run the development server:
 
 ```bash
-npm install
 npm run dev
+# or
+yarn dev
+# or
+pnpm dev
+# or
+bun dev
 ```
 
-Akses aplikasi di [http://localhost:5173](http://localhost:5173)
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-## Teknologi
+You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
-- [Svelte](https://svelte.dev/)
-- [TypeScript](https://www.typescriptlang.org/)
-- [Vite](https://vitejs.dev/)
-- [Tailwind CSS](https://tailwindcss.com/) _(jika digunakan)_
-- [svelte-routing](https://github.com/EmilTholin/svelte-routing) _(untuk routing SPA)_
+This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
-## Pengembangan
+## Learn More
 
-- Rekomendasi IDE: [VS Code](https://code.visualstudio.com/)
-- Ekstensi: [Svelte for VS Code](https://marketplace.visualstudio.com/items?itemName=svelte.svelte-vscode)
-- Ikuti struktur folder dan gunakan komponen reusable untuk menjaga kode tetap DRY dan modular.
+To learn more about Next.js, take a look at the following resources:
 
-## Kontribusi
+- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
+- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
 
-Kontribusi sangat terbuka! Silakan buat pull request atau issue untuk perbaikan/penambahan fitur.
+You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
 
-## Lisensi
+## Deploy on Vercel
 
-MIT
+The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+
+Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
