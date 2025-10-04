@@ -173,7 +173,7 @@ export default function PromoFormModal({
          try {
             const all = await getAllStores();
             if (mounted) setAllStores(all);
-         } catch (err) {
+         } catch {
             // optional: handle error
          }
       }
@@ -331,7 +331,7 @@ export default function PromoFormModal({
                         promo_id: created.id_promo,
                         store_id: m.store.id,
                      });
-                  } catch (err) {
+                  } catch {
                      // Optional: tampilkan error toast jika gagal satu store
                   }
                }

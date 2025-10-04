@@ -7,8 +7,6 @@ import { Button } from "@components/ui/shadcn/button";
 import {
    Card as ShadCard,
    CardHeader as ShadCardHeader,
-   CardTitle as ShadCardTitle,
-   CardDescription as ShadCardDescription,
    CardContent as ShadCardContent,
 } from "@components/ui/shadcn/card";
 import { useToast } from "@components/ui/Toast";
@@ -19,7 +17,7 @@ import StoreFormModal from "@components/Store/StoreFormModal";
 export default function StoreClient() {
    const [stores, setStores] = useState<StoreResponse[]>([]);
    const [isLoading, setIsLoading] = useState(true);
-   const [error, setError] = useState<Error | null>(null);
+   // const [error, setError] = useState<Error | null>(null);
    const [deleteTarget, setDeleteTarget] = useState<StoreResponse | null>(null);
    const [isDeleteOpen, setIsDeleteOpen] = useState(false);
    const [q, setQ] = useState("");
@@ -31,28 +29,7 @@ export default function StoreClient() {
 
    const STORAGE_KEY = "store:list:filters";
 
-   const resetFilters = async () => {
-      setQ("");
-      setFilterCompany("");
-      setFilterRoute("");
-      try {
-         if (typeof window !== "undefined") {
-            localStorage.removeItem(STORAGE_KEY);
-         }
-      } catch (err) {
-         console.warn("Could not clear persisted store filters", err);
-      }
-      // refetch store list
-      try {
-         setIsLoading(true);
-         const rows = await getAllStores();
-         setStores(rows);
-      } catch (err) {
-         setError(err as Error);
-      } finally {
-         setIsLoading(false);
-      }
-   };
+   // resetFilters removed (unused)
 
    // load persisted filter state on mount
    useEffect(() => {
@@ -92,7 +69,7 @@ export default function StoreClient() {
             setStores(rows);
          } catch (err) {
             console.error("getAllStores failed", err);
-            setError(err as Error);
+            // setError(err as Error); // removed: error state not used
          } finally {
             if (mounted) setIsLoading(false);
          }

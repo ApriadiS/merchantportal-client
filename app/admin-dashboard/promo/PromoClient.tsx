@@ -6,8 +6,6 @@ import { Button } from "@components/ui/shadcn/button";
 import {
    Card as ShadCard,
    CardHeader as ShadCardHeader,
-   CardTitle as ShadCardTitle,
-   CardDescription as ShadCardDescription,
    CardContent as ShadCardContent,
 } from "@components/ui/shadcn/card";
 import { Input } from "@components/ui/shadcn/input";

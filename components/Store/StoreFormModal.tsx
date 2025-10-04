@@ -6,7 +6,7 @@ import { RadioGroup, RadioGroupItem } from "@components/ui/shadcn/radio-group";
 import type { StoreRequest, StoreResponse } from "@/utils/interface";
 import { createStore, updateStore } from "@services/database/client/stores";
 import { useToast } from "@components/ui/Toast";
-import auth from "@services/auth";
+// ...existing code...
 
 interface Props {
    open: boolean;
