@@ -1,6 +1,6 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import { Button } from "@components/ui/shadcn/button";
+import { Button } from "@/components/ui/button";
 import type { PromoRequest, PromoResponse } from "@/utils/interface";
 import type { StoreResponse } from "@/utils/interface";
 import { createPromo, updatePromo } from "@services/database/client/promos";
@@ -11,20 +11,20 @@ import {
    getPromoStoresByPromoId,
 } from "@services/database/client/promo_store";
 import { getAllStores, getStoresByIds } from "@services/database/client/stores";
-import { useToast } from "@components/ui/Toast";
-import { Input } from "@components/ui/shadcn/input";
+import { useToast } from "@components/hooks/useToast";
+import { Input } from "@/components/ui/input";
 import useCurrency from "@hooks/useCurrency";
 import { formatPercent } from "@/utils/format";
-import { RadioGroup, RadioGroupItem } from "@components/ui/shadcn/radio-group";
-import { Label } from "@components/ui/shadcn/label";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
 import {
    Select,
    SelectTrigger,
    SelectValue,
    SelectContent,
    SelectItem,
-} from "@components/ui/shadcn/select";
-import { Checkbox } from "@components/ui/shadcn/checkbox";
+} from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
 
 interface Props {
    open: boolean;
@@ -63,7 +63,7 @@ export default function PromoFormModal({
    const [freeInstallment, setFreeInstallment] = useState<number | "">(0);
    const [isActive, setIsActive] = useState<boolean>(true);
    const [loading, setLoading] = useState(false);
-   const toast = useToast();
+   const { push } = useToast();
    const [errors, setErrors] = useState<Record<string, string>>({});
 
    // store mapping state (used when editing)
@@ -173,7 +173,7 @@ export default function PromoFormModal({
          try {
             const all = await getAllStores();
             if (mounted) setAllStores(all);
-         } catch (err) {
+         } catch {
             // optional: handle error
          }
       }
@@ -211,7 +211,7 @@ export default function PromoFormModal({
                { id: Date.now(), store: sRow }, // id dummy
             ]);
             setSelectedStoreToAdd("");
-            toast.push({
+            push({
                type: "success",
                message: "Store berhasil ditambahkan (draft)",
             });
@@ -233,7 +233,7 @@ export default function PromoFormModal({
                   (pr?.title_promo || "") === (title || initial.title_promo)
             );
             if (conflicting) {
-               toast.push({
+               push({
                   type: "error",
                   message: "Store sudah memiliki promo dengan judul yang sama",
                });
@@ -250,13 +250,13 @@ export default function PromoFormModal({
             { id: ins.id, store: sRow as StoreResponse },
          ]);
          setSelectedStoreToAdd("");
-         toast.push({
+         push({
             type: "success",
             message: "Promo berhasil ditambahkan ke store",
          });
       } catch (err) {
          console.error("Failed to add promo to store", err);
-         toast.push({
+         push({
             type: "error",
             message: "Gagal menambahkan promo ke store",
          });
@@ -270,10 +270,10 @@ export default function PromoFormModal({
       try {
          await removePromoFromStore(mappingId);
          setAssignedMappings((prev) => prev.filter((m) => m.id !== mappingId));
-         toast.push({ type: "success", message: "Promo dihapus dari store" });
+         push({ type: "success", message: "Promo dihapus dari store" });
       } catch (err) {
          console.error("Failed to remove promo mapping", err);
-         toast.push({
+         push({
             type: "error",
             message: "Gagal menghapus mapping promo-store",
          });
@@ -316,7 +316,7 @@ export default function PromoFormModal({
                ...(initial as PromoResponse),
                ...payload,
             } as PromoResponse);
-            toast.push({
+            push({
                type: "success",
                message: "Promo berhasil diperbarui",
             });
@@ -331,19 +331,19 @@ export default function PromoFormModal({
                         promo_id: created.id_promo,
                         store_id: m.store.id,
                      });
-                  } catch (err) {
+                  } catch {
                      // Optional: tampilkan error toast jika gagal satu store
                   }
                }
             }
             onCreated?.(created as PromoResponse);
-            toast.push({ type: "success", message: "Promo berhasil dibuat" });
+            push({ type: "success", message: "Promo berhasil dibuat" });
          }
 
          onClose();
       } catch (err) {
          console.error(err);
-         toast.push({ type: "error", message: "Gagal menyimpan promo" });
+         push({ type: "error", message: "Gagal menyimpan promo" });
       } finally {
          setLoading(false);
       }

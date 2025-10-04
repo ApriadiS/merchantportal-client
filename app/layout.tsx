@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import VercelIntegration from "@components/VercelIntegration";
-import { ToastProvider } from "@components/ui/Toast";
 
 export const metadata: Metadata = {
    title: "Simulasi Cicilan Akulaku",
@@ -37,10 +36,8 @@ export default function RootLayout({
             <link rel="apple-touch-icon" href="/akulaku-logo.png" />
          </head>
          <body>
-            <ToastProvider>
-               {children}
-               <VercelIntegration />
-            </ToastProvider>
+            {children}
+            <VercelIntegration />
          </body>
       </html>
    );

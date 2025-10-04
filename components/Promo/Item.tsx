@@ -6,12 +6,6 @@ export default function ItemPromo({
    dataStores,
    buttons,
 }: ItemPromoProps) {
-   const formatCurrency = (value: string) => {
-      const numberValue = parseInt(value, 10);
-      return isNaN(numberValue)
-         ? "Rp. 0"
-         : `Rp. ${numberValue.toLocaleString("id-ID")}`;
-   };
    const formatCurrencyNumber = (value: number) => {
       return isNaN(value) ? "Rp. 0" : `Rp. ${value.toLocaleString("id-ID")}`;
    };

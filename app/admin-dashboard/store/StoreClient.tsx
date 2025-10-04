@@ -3,23 +3,21 @@ import { useEffect, useState } from "react";
 import type { StoreResponse } from "@/utils/interface";
 import Loading from "@components/shared/Loading";
 import ModalDelete from "@components/shared/ModalDelete";
-import { Button } from "@components/ui/shadcn/button";
+import { Button } from "@/components/ui/button";
 import {
    Card as ShadCard,
    CardHeader as ShadCardHeader,
-   CardTitle as ShadCardTitle,
-   CardDescription as ShadCardDescription,
    CardContent as ShadCardContent,
-} from "@components/ui/shadcn/card";
-import { useToast } from "@components/ui/Toast";
+} from "@/components/ui/card";
+import { useToast } from "@components/hooks/useToast";
 import { getAllStores, deleteStore } from "@services/database/client/stores";
-import { Input } from "@components/ui/shadcn/input";
+import { Input } from "@/components/ui/input";
 import StoreFormModal from "@components/Store/StoreFormModal";
 
 export default function StoreClient() {
    const [stores, setStores] = useState<StoreResponse[]>([]);
    const [isLoading, setIsLoading] = useState(true);
-   const [error, setError] = useState<Error | null>(null);
+   // const [error, setError] = useState<Error | null>(null);
    const [deleteTarget, setDeleteTarget] = useState<StoreResponse | null>(null);
    const [isDeleteOpen, setIsDeleteOpen] = useState(false);
    const [q, setQ] = useState("");
@@ -27,32 +25,11 @@ export default function StoreClient() {
    const [filterRoute, setFilterRoute] = useState("");
    const [isCreateOpen, setIsCreateOpen] = useState(false);
    const [editingStore, setEditingStore] = useState<StoreResponse | null>(null);
-   const toast = useToast();
+   const { push: pushToast } = useToast();
 
    const STORAGE_KEY = "store:list:filters";
 
-   const resetFilters = async () => {
-      setQ("");
-      setFilterCompany("");
-      setFilterRoute("");
-      try {
-         if (typeof window !== "undefined") {
-            localStorage.removeItem(STORAGE_KEY);
-         }
-      } catch (err) {
-         console.warn("Could not clear persisted store filters", err);
-      }
-      // refetch store list
-      try {
-         setIsLoading(true);
-         const rows = await getAllStores();
-         setStores(rows);
-      } catch (err) {
-         setError(err as Error);
-      } finally {
-         setIsLoading(false);
-      }
-   };
+   // resetFilters removed (unused)
 
    // load persisted filter state on mount
    useEffect(() => {
@@ -92,7 +69,7 @@ export default function StoreClient() {
             setStores(rows);
          } catch (err) {
             console.error("getAllStores failed", err);
-            setError(err as Error);
+            // setError(err as Error); // removed: error state not used
          } finally {
             if (mounted) setIsLoading(false);
          }
@@ -111,10 +88,10 @@ export default function StoreClient() {
          setStores(rows);
          setIsDeleteOpen(false);
          setDeleteTarget(null);
-         toast.push({ type: "success", message: "Store berhasil dihapus" });
+         pushToast({ type: "success", message: "Store berhasil dihapus" });
       } catch (err) {
          console.error("deleteStore failed", err);
-         toast.push({ type: "error", message: "Gagal menghapus store" });
+         pushToast({ type: "error", message: "Gagal menghapus store" });
       }
    };
 

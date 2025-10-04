@@ -5,8 +5,8 @@ import {
    DialogHeader,
    DialogTitle,
    DialogFooter,
-} from "@/components/ui/shadcn/dialog";
-import { Button } from "@/components/ui/shadcn/button";
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 
 interface ModalDeleteProps {
    title: string;
