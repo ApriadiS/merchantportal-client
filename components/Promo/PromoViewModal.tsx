@@ -1,12 +1,7 @@
 "use client";
 import React from "react";
 import { Button } from "@/components/ui/button";
-import {
-   Card as ShadCard,
-   CardHeader as ShadCardHeader,
-   CardTitle as ShadCardTitle,
-   CardContent as ShadCardContent,
-} from "@/components/ui/card";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import type { PromoResponse } from "@/utils/interface";
 import type { StoreResponse } from "@/utils/interface";
 import { formatCurrency, formatPercent, formatAdmin } from "@/utils/format";
@@ -41,13 +36,13 @@ export default function PromoViewModal({
             onClick={onClose}
          />
          <div className="relative z-50 w-[640px] max-w-full mx-5">
-            <ShadCard className="bg-card">
-               <ShadCardHeader>
+            <Card className="bg-card">
+               <CardHeader>
                   <div>
-                     <ShadCardTitle>{promo.title_promo}</ShadCardTitle>
+                     <CardTitle>{promo.title_promo}</CardTitle>
                   </div>
-               </ShadCardHeader>
-               <ShadCardContent>
+               </CardHeader>
+               <CardContent>
                   <dl className="grid grid-cols-2 gap-4 text-sm">
                      <div>
                         <dt className="text-xs text-muted-foreground">
@@ -161,8 +156,8 @@ export default function PromoViewModal({
                      </Button>
                      <Button onClick={() => onEdit?.(promo)}>Edit</Button>
                   </div>
-               </ShadCardContent>
-            </ShadCard>
+               </CardContent>
+            </Card>
          </div>
       </div>
    );

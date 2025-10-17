@@ -2,10 +2,10 @@
 import React, { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+
 import type { StoreRequest, StoreResponse } from "@/utils/interface";
-import { createStore, updateStore } from "@services/database/client/stores";
-import { useToast } from "@components/hooks/useToast";
+import { createStore, updateStore } from "@services/database/stores";
+import { useToast } from "@/hooks/useToast-old";
 
 interface Props {
    open: boolean;
@@ -26,7 +26,7 @@ export default function StoreFormModal({
    const [company, setCompany] = useState("");
    const [address, setAddress] = useState("");
    const [route, setRoute] = useState("");
-   const [type, setType] = useState("KA");
+   const [storeType, setStoreType] = useState("KA");
    const [loading, setLoading] = useState(false);
    const { push } = useToast();
    const [errors, setErrors] = useState<Record<string, string>>({});
@@ -34,18 +34,21 @@ export default function StoreFormModal({
    // Using supabase client directly instead of Refine mutations
 
    useEffect(() => {
-      if (initial) {
-         setName(initial.name || "");
-         setCompany(initial.company || "");
-         setAddress(initial.address || "");
-         setRoute(initial.route || "");
-         setType(initial.type || "KA");
-      } else {
-         setName("");
-         setCompany("");
-         setAddress("");
-         setRoute("");
-         setType("KA");
+      if (open) {
+         setErrors({}); // Reset errors when modal opens
+         if (initial) {
+            setName(initial.name || "");
+            setCompany(initial.company || "");
+            setAddress(initial.address || "");
+            setRoute(initial.route || "");
+            setStoreType(initial.store_type || "KA");
+         } else {
+            setName("");
+            setCompany("");
+            setAddress("");
+            setRoute("");
+            setStoreType("KA");
+         }
       }
    }, [initial, open]);
 
@@ -60,24 +63,28 @@ export default function StoreFormModal({
          const errs: Record<string, string> = {};
          if (!name || name.trim().length < 2)
             errs.name = "Name minimal 2 karakter";
+         if (!company || company.trim().length < 1)
+            errs.company = "Company tidak boleh kosong";
+         if (!address || address.trim().length < 1)
+            errs.address = "Address tidak boleh kosong";
+         
          setErrors(errs);
-         if (Object.keys(errs).length > 0) return;
+         if (Object.keys(errs).length > 0) {
+            setLoading(false);
+            return;
+         }
 
          const payload: StoreRequest = {
             name,
             company,
             address,
             route: route || "",
-            type,
+            store_type: storeType,
          };
 
          if (isEditing && initial) {
-            await updateStore(initial.id as number, payload);
-            const updated = {
-               ...(initial as StoreResponse),
-               ...payload,
-            } as StoreResponse;
-            onUpdated?.(updated);
+            const updatedStore = await updateStore(initial.id as number, payload);
+            onUpdated?.(updatedStore);
             push({
                type: "success",
                message: "Store berhasil diperbarui",
@@ -129,12 +136,18 @@ export default function StoreFormModal({
                   value={company}
                   onChange={(e) => setCompany(e.target.value)}
                />
+               {errors.company && (
+                  <p className="text-xs text-red-500">{errors.company}</p>
+               )}
 
                <label className="text-xs text-muted-foreground">Address</label>
                <Input
                   value={address}
                   onChange={(e) => setAddress(e.target.value)}
                />
+               {errors.address && (
+                  <p className="text-xs text-red-500">{errors.address}</p>
+               )}
 
                <label className="text-xs text-muted-foreground">Route</label>
                <Input
@@ -142,25 +155,15 @@ export default function StoreFormModal({
                   onChange={(e) => setRoute(e.target.value)}
                />
 
-               <label className="text-xs text-muted-foreground">Tipe</label>
-               <RadioGroup
-                  value={type}
-                  onValueChange={setType}
-                  className="flex flex-row gap-4 mt-1"
+               <label className="text-xs text-muted-foreground">Store Type</label>
+               <select
+                  value={storeType}
+                  onChange={(e) => setStoreType(e.target.value)}
+                  className="w-full p-2 border border-gray-300 rounded-md"
                >
-                  <div className="flex items-center space-x-2">
-                     <RadioGroupItem value="KA" id="type-ka" />
-                     <label htmlFor="type-ka" className="text-sm">
-                        KA
-                     </label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                     <RadioGroupItem value="NKA" id="type-nka" />
-                     <label htmlFor="type-nka" className="text-sm">
-                        NKA
-                     </label>
-                  </div>
-               </RadioGroup>
+                  <option value="KA">KA</option>
+                  <option value="NKA">NKA</option>
+               </select>
             </div>
 
             <div className="mt-4 md:mt-6 flex justify-end gap-2">
