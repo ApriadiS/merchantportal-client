@@ -21,7 +21,7 @@ A modern Next.js application for managing merchant stores and promotional campai
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/yourusername/merchantportal-client.git
+   git clone https://github.com/ApriadiS/merchantportal-client.git
    cd merchantportal-client
    ```
 
@@ -161,7 +161,7 @@ This project is licensed under the MIT License.
 
 ## 👥 Authors
 
-- Your Name - Initial work
+- **Apriadi Salim** ([@ApriadiS](https://github.com/ApriadiS)) - Initial work
 
 ## 🙏 Acknowledgments
 
@@ -172,7 +172,7 @@ This project is licensed under the MIT License.
 
 ## 📞 Support
 
-For support, email your-email@example.com or open an issue in the repository.
+For support, email apriadisalim007@gmail.com or open an issue in the repository.
 
 ---
 
