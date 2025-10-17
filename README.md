@@ -1,21 +1,24 @@
-# 🏪 Merchant Portal Client
+# 🏪 Merchant Portal Client v2.1.0
 
 A modern Next.js application for managing merchant stores and promotional campaigns with installment calculation features.
 
 ## 🚀 Features
 
-- **🔐 Authentication**: Secure admin authentication with Supabase
-- **🏬 Store Management**: CRUD operations for merchant stores
+- **🔐 Authentication**: Secure admin authentication with Supabase (Auth only)
+- **🏬 Store Management**: CRUD operations via Rust API backend
 - **🎁 Promo Management**: Create and manage promotional campaigns
-- **💳 Installment Calculator**: Calculate installment payments with various tenors
+- **💳 Installment Calculator**: Public installment calculator (no login required)
 - **📱 Responsive Design**: Mobile-first design with Tailwind CSS
-- **🔒 Row Level Security**: Database security with Supabase RLS
+- **🌐 Public Pages**: Browse stores and promos without authentication
+- **⚡ Performance**: Vercel Analytics & Speed Insights integrated
+- **🦀 Rust Backend**: High-performance API with JWT authentication
 
 ## 📋 Prerequisites
 
 - Node.js 18+ 
 - npm or yarn
-- Supabase account
+- Supabase account (for authentication only)
+- Rust API Backend (v2.1.0)
 
 ## 🛠️ Installation
 
@@ -35,17 +38,17 @@ A modern Next.js application for managing merchant stores and promotional campai
    cp .env.example .env
    ```
    
-   Edit `.env` and add your Supabase credentials:
+   Edit `.env`:
    ```env
+   # Supabase (Authentication only)
    NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
    NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+   
+   # Rust API Backend
+   NEXT_PUBLIC_API_URL=http://localhost:3000
    ```
 
-4. **Setup Supabase RLS**
-   
-   Follow the guide in `SUPABASE_RLS_SETUP.md` to configure Row Level Security policies.
-
-5. **Run development server**
+4. **Run development server**
    ```bash
    npm run dev
    ```
@@ -69,9 +72,10 @@ merchantportal-client/
 │   └── ui/                 # UI components (shadcn/ui)
 ├── hooks/                   # Custom React hooks
 ├── services/               # API services
+│   ├── api/               # Rust API services (v2.1.0)
 │   ├── auth/              # Authentication services
-│   ├── database/          # Database operations
-│   └── supabase/          # Supabase client configuration
+│   ├── database/          # [DEPRECATED] Direct Supabase
+│   └── supabase/          # Supabase client (auth only)
 ├── utils/                  # Utility functions
 └── public/                 # Static assets
 ```
@@ -82,18 +86,50 @@ merchantportal-client/
 - **Language**: TypeScript
 - **Styling**: Tailwind CSS v4
 - **UI Components**: shadcn/ui + Radix UI
-- **Database**: Supabase (PostgreSQL)
-- **Authentication**: Supabase Auth
+- **Backend**: Rust API (Axum framework)
+- **Database**: PostgreSQL (via Rust API)
+- **Authentication**: Supabase Auth (JWT tokens)
 - **Form Handling**: React Hook Form + Zod
 - **State Management**: React Hooks
+- **Analytics**: Vercel Analytics & Speed Insights
 
-## 📖 Documentation
+## 📖 Architecture (v2.1.0)
 
-- [Quick Start Guide](./QUICK_START.md) - Get started quickly
-- [Authentication Flow](./AUTH_FLOW.md) - How authentication works
-- [Supabase RLS Setup](./SUPABASE_RLS_SETUP.md) - Database security setup
-- [CRUD Architecture](./CRUD_REFACTOR_SUMMARY.md) - Database operations
-- [Optimization Guide](./OPTIMIZATION_SUMMARY.md) - Performance optimizations
+### Authentication Flow
+```
+User → Supabase Auth → JWT Token → Rust API (validates JWT) → PostgreSQL
+```
+
+### Public vs Protected Routes
+
+**Public Routes** (No authentication required):
+- `/` - Homepage with store list
+- `/{storeRoute}` - Store detail page with promo calculator
+
+**Protected Routes** (JWT required):
+- `/admin-dashboard/*` - Admin CRUD operations
+
+### API Endpoints
+
+**Public Endpoints** (No JWT):
+```
+GET /get-store              - List all stores
+GET /get-store/{route}      - Get store by route
+GET /get-promo?store_id={id} - Get promos for store
+```
+
+**Protected Endpoints** (JWT required):
+```
+POST   /create-promo
+PUT    /update-promo/{voucher_code}
+DELETE /delete-promo/{voucher_code}
+POST   /create-store
+PUT    /update-store/{route}
+DELETE /delete-store/{route}
+GET    /get-promo-store?promo_id={id}
+POST   /create-promo-store
+DELETE /delete-promo-store/{promo_id}-{store_id}
+```
 
 ## 🧪 Testing
 
@@ -113,28 +149,41 @@ npm run lint
 
 ## 🔐 Security
 
-- ✅ Row Level Security (RLS) enabled on all tables
-- ✅ Authentication required for admin operations
-- ✅ Session-based authentication with auto-refresh
+- ✅ JWT authentication for admin operations
+- ✅ Public read-only access for store browsing
+- ✅ Backend validates JWT tokens with caching (~95% hit rate)
 - ✅ Environment variables for sensitive data
 - ✅ HTTPS recommended for production
+- ✅ Supabase handles authentication only
 
 ## 📝 Environment Variables
 
 Required environment variables (see `.env.example`):
 
 ```env
-NEXT_PUBLIC_SUPABASE_URL=        # Your Supabase project URL
-NEXT_PUBLIC_SUPABASE_ANON_KEY=   # Your Supabase anon/public key
+# Supabase (Authentication only)
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+
+# Rust API Backend (v2.1.0)
+NEXT_PUBLIC_API_URL=http://localhost:3000  # Development
+# NEXT_PUBLIC_API_URL=https://api.yourdomain.com  # Production
 ```
 
 ## 🚀 Deployment
+
+### Prerequisites
+1. Deploy Rust API backend first
+2. Get backend API URL
 
 ### Vercel (Recommended)
 
 1. Push your code to GitHub
 2. Import project in Vercel
-3. Add environment variables
+3. Add environment variables:
+   - `NEXT_PUBLIC_SUPABASE_URL`
+   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+   - `NEXT_PUBLIC_API_URL` (your backend URL)
 4. Deploy!
 
 ### Other Platforms
@@ -146,6 +195,28 @@ npm run build
 # The output will be in .next folder
 # Deploy .next folder to your hosting
 ```
+
+## 📊 What's New in v2.1.0
+
+### Major Changes
+- 🦀 **Rust API Backend**: Migrated from direct Supabase to Rust API
+- 🌐 **Public Routes**: Store browsing without authentication
+- 🔑 **JWT Authentication**: Backend validates tokens with caching
+- 📊 **New Schema**: Simplified field names (e.g., `title` instead of `title_promo`)
+- 🔗 **Composite Keys**: PromoStore uses `{promo_id}-{store_id}` format
+- ⚡ **Performance**: Vercel Analytics & Speed Insights
+
+### Breaking Changes
+- Supabase now only handles authentication (no direct DB queries)
+- All CRUD operations go through Rust API
+- Field names updated in Promo schema
+- PromoStore no longer has `id` field (composite key)
+
+### Migration Notes
+- `services/database/*` is deprecated
+- Use `services/api/*` for all operations
+- Public pages work without login
+- Admin pages require JWT token
 
 ## 🤝 Contributing
 
@@ -166,9 +237,10 @@ This project is licensed under the MIT License.
 ## 🙏 Acknowledgments
 
 - Next.js team for the amazing framework
-- Supabase for the backend infrastructure
+- Rust community for the powerful backend tools
+- Supabase for authentication infrastructure
 - shadcn for the beautiful UI components
-- Vercel for hosting and deployment
+- Vercel for hosting, analytics, and deployment
 
 ## 📞 Support
 
@@ -176,4 +248,7 @@ For support, email apriadisalim007@gmail.com or open an issue in the repository.
 
 ---
 
-**Built with ❤️ using Next.js and Supabase**
+**Built with ❤️ using Next.js, Rust, and Supabase**
+
+**Version**: 2.1.0  
+**Last Updated**: January 2025
