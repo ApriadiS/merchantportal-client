@@ -1,5 +1,5 @@
 "use client";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState, useMemo } from "react";
 
 type SetValue = (value: string | number | ((prev: number) => number)) => void;
 
@@ -82,41 +82,21 @@ function formatRupiah(amount: number): string {
  * const [normal, withDot, currency, setValue] = useCurrency(1000)
  */
 export default function useCurrency(initial?: number | string) {
-   const initialNumber = normalizeToNumber(initial, 0);
+   const [normal, setNormal] = useState<number>(() => normalizeToNumber(initial, 0));
+   
+   const withDot = useMemo(() => formatWithDot(normal), [normal]);
+   const currency = useMemo(() => formatRupiah(normal), [normal]);
 
-   const [normal, setNormal] = useState<number>(initialNumber);
-   const [withDot, setWithDot] = useState<string>(() =>
-      formatWithDot(initialNumber)
-   );
-   const [currency, setCurrency] = useState<string>(() =>
-      formatRupiah(initialNumber)
-   );
-
-   // stable setter: only number or updater function (no string)
    const setValue: SetValue = useCallback((val) => {
-      // Cukup panggil normalizeToNumber, karena ia sudah menangani
-      // semua kasus (string, number, dan function).
-      setNormal((prev) => {
-         const next = normalizeToNumber(val, prev);
-
-         // update all formatted representations
-         setWithDot(formatWithDot(next));
-         setCurrency(formatRupiah(next));
-         return next;
-      });
-   }, []);
-
-   // If initial prop changes, sync all states
-   useEffect(() => {
-      const next = normalizeToNumber(initial, normal);
-      if (next !== normal) {
-         setNormal(next);
-         setWithDot(formatWithDot(next));
-         setCurrency(formatRupiah(next));
+      if (typeof val === "string") {
+         // For string input, parse directly without normalization
+         const digits = val.replace(/[^0-9]/g, "");
+         const num = digits ? parseInt(digits, 10) : 0;
+         setNormal(num);
+      } else {
+         setNormal((prev) => normalizeToNumber(val, prev));
       }
-      // intentionally only sync when `initial` changes
-      // eslint-disable-next-line react-hooks/exhaustive-deps
-   }, [initial]);
+   }, []);
 
    return [normal, withDot, currency, setValue] as const;
 }
