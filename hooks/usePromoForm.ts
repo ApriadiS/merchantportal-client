@@ -1,14 +1,13 @@
 import { useState, useEffect } from "react";
 import { PromoRequest, PromoResponse, StoreResponse } from "@/utils/interface";
 import { AdminPromoType } from "@/utils/types";
-import { createPromo, updatePromo } from "@services/database/promos";
+import { createPromo, updatePromo, getPromoByVoucher } from "@services/api/promos";
 import {
-   getPromoStoresByPromoId,
-   addPromoToStore,
-   removePromoFromStore,
-   getPromoStoresByStoreId,
-} from "@services/database/promo_store";
-import { getAllStores, getStoresByIds } from "@services/database/stores";
+   getAllPromoStores,
+   createPromoStore,
+   deletePromoStore,
+} from "@services/api/promo_store";
+import { getAllStores } from "@services/api/stores";
 import { useToast } from "@/hooks/useToast-old";
 import useCurrency from "@/hooks/useCurrency";
 
@@ -58,7 +57,7 @@ export const usePromoForm = ({
    const [selectedStoreToAdd, setSelectedStoreToAdd] = useState<string>("");
 
    const { push } = useToast();
-   const isEditing = Boolean(initial && initial.id_promo);
+   const isEditing = Boolean(initial && initial.id);
 
    const parseCurrencyInput = (s: string) => {
       const digits = String(s).replace(/[^0-9-]/g, "");
@@ -77,16 +76,16 @@ export const usePromoForm = ({
    // Reset form when modal opens/closes or initial changes
    useEffect(() => {
       if (initial) {
-         setTitle(initial.title_promo || "");
+         setTitle(initial.title || "");
          setVoucher(initial.voucher_code || "");
-         setMin(initial.min_transaction_promo ?? 0);
-         setTenor(String(initial.tenor_promo ?? 6));
-         setSubsidiPercent(initial.subsidi_promo ?? 0);
-         setAdminValue(initial.admin_promo ?? 0);
-         setAdminType(String(initial.admin_promo_type ?? "FIX"));
+         setMin(initial.min_transaction ?? 0);
+         setTenor(String(initial.tenor ?? 6));
+         setSubsidiPercent(initial.subsidi ?? 0);
+         setAdminValue(initial.admin_fee ?? 0);
+         setAdminType(String(initial.admin_fee_type ?? "FIX"));
          setInterest(initial.interest_rate ?? 0);
-         setStartDate(initial.start_date_promo ?? new Date().toISOString().slice(0, 10));
-         setEndDate(initial.end_date_promo ?? new Date(Date.now() + 1000 * 60 * 60 * 24 * 30).toISOString().slice(0, 10));
+         setStartDate(initial.start_date ?? new Date().toISOString().slice(0, 10));
+         setEndDate(initial.end_date ?? new Date(Date.now() + 1000 * 60 * 60 * 24 * 30).toISOString().slice(0, 10));
          setFreeInstallment(initial.free_installment ?? 0);
          setIsActive(initial.is_active ?? true);
          setDiscount(initial.discount ?? 0);
@@ -115,25 +114,19 @@ export const usePromoForm = ({
    useEffect(() => {
       let mounted = true;
       async function loadMappings() {
-         if (!open || !initial || !initial.id_promo) return;
+         if (!open || !initial || !initial.id) return;
          setMappingLoading(true);
          setMappingError(null);
          try {
-            const maps = await getPromoStoresByPromoId(initial.id_promo);
-            const storeIds = maps.map((m) => m.store_id).filter(Boolean) as number[];
-
-            let assigned: { id: number; store: StoreResponse }[] = [];
-            if (storeIds.length > 0) {
-               const sRows = await getStoresByIds(storeIds);
-               assigned = maps
-                  .map((m) => ({
-                     id: m.id,
-                     store: sRows.find((s) => s.id === m.store_id)!,
-                  }))
-                  .filter((x) => x.store !== undefined);
-            }
-
+            const maps = await getPromoStoresByPromo(initial.id);
             const all = await getAllStores();
+            
+            const assigned = maps
+               .map((m) => ({
+                  id: Date.now() + Math.random(), // Temporary ID for UI
+                  store: all.find((s) => s.id === m.store_id)!,
+               }))
+               .filter((x) => x.store !== undefined);
 
             if (mounted) {
                setAssignedMappings(assigned);
@@ -174,7 +167,7 @@ export const usePromoForm = ({
    const addStoreToPromo = async (storeId: number) => {
       setMappingLoading(true);
       try {
-         if (!initial || !initial.id_promo) {
+         if (!initial || !initial.id) {
             const sRow = allStores.find((s) => s.id === storeId);
             if (!sRow) return;
             setAssignedMappings((prev) => [
@@ -189,32 +182,24 @@ export const usePromoForm = ({
             return;
          }
 
-         const existingMaps = await getPromoStoresByStoreId(storeId);
-         const existingPromoIds = existingMaps.map((r) => r.promo_id);
-         if (existingPromoIds.length > 0) {
-            const { getPromoById } = await import("@services/database/promos");
-            const promos = await Promise.all(
-               existingPromoIds.map((id) => getPromoById(id))
-            );
-            const conflicting = promos.find(
-               (pr) => (pr?.title_promo || "") === (title || initial.title_promo)
-            );
-            if (conflicting) {
-               push({
-                  type: "error",
-                  message: "Store sudah memiliki promo dengan judul yang sama",
-               });
-               return;
-            }
+         const existingMaps = await getPromoStoresByStore(storeId);
+         if (existingMaps.length > 0) {
+            push({
+               type: "error",
+               message: "Store sudah memiliki promo lain",
+            });
+            return;
          }
-         const ins = await addPromoToStore({
-            promo_id: initial.id_promo,
+         
+         await createPromoStore({
+            promo_id: initial.id,
             store_id: storeId,
          });
-         const [sRow] = await getStoresByIds([storeId]);
+         
+         const sRow = allStores.find((s) => s.id === storeId);
          setAssignedMappings((prev) => [
             ...prev,
-            { id: ins.id, store: sRow as StoreResponse },
+            { id: Date.now(), store: sRow as StoreResponse },
          ]);
          setSelectedStoreToAdd("");
          push({
@@ -233,9 +218,14 @@ export const usePromoForm = ({
    };
 
    const removeMapping = async (mappingId: number) => {
+      if (!initial || !initial.id) return;
+      
       setMappingLoading(true);
       try {
-         await removePromoFromStore(mappingId);
+         const mapping = assignedMappings.find((m) => m.id === mappingId);
+         if (!mapping) return;
+         
+         await deletePromoStore(initial.id, mapping.store.id);
          setAssignedMappings((prev) => prev.filter((m) => m.id !== mappingId));
          push({ type: "success", message: "Promo dihapus dari store" });
       } catch (err) {
@@ -262,25 +252,16 @@ export const usePromoForm = ({
          if (Object.keys(errs).length > 0) return;
 
          const payload: PromoRequest = {
-            title_promo: title,
-            min_transaction_promo: Number(minNormal) || 0,
-            tenor_promo: Number(tenor) || initial?.tenor_promo || 6,
-            admin_promo: adminValue === "" ? 0 : Number(adminValue),
-            admin_promo_type: (adminType as AdminPromoType) || "FIX",
+            title: title,
+            min_transaction: Number(minNormal) || 0,
+            tenor: Number(tenor) || initial?.tenor || 6,
+            admin_fee: adminValue === "" ? 0 : Number(adminValue),
+            admin_fee_type: (adminType as AdminPromoType) || "FIX",
             interest_rate: interest === "" ? 0 : Number(interest),
             voucher_code: voucher,
-            start_date_promo: startDate,
-            end_date_promo: endDate,
-            subsidi_promo: (() => {
-               const result = subsidiPercent === "" ? 0 : Number(subsidiPercent);
-               console.log('SUBSIDI DEBUG:', {
-                  subsidiPercent,
-                  type: typeof subsidiPercent,
-                  result,
-                  numberConversion: Number(subsidiPercent)
-               });
-               return result;
-            })(),
+            start_date: startDate,
+            end_date: endDate,
+            subsidi: subsidiPercent === "" ? 0 : Number(subsidiPercent),
             free_installment: freeInstallment === "" ? 0 : Number(freeInstallment),
             is_active: isActive,
             discount: discount === "" ? 0 : Number(discount),
@@ -289,7 +270,7 @@ export const usePromoForm = ({
          };
 
          if (isEditing && initial) {
-            await updatePromo(initial.id_promo as number, payload);
+            await updatePromo(initial.voucher_code, payload);
             onUpdated?.({
                ...(initial as PromoResponse),
                ...payload,
@@ -303,8 +284,8 @@ export const usePromoForm = ({
             if (created && assignedMappings.length > 0) {
                for (const m of assignedMappings) {
                   try {
-                     await addPromoToStore({
-                        promo_id: created.id_promo,
+                     await createPromoStore({
+                        promo_id: created.id,
                         store_id: m.store.id,
                      });
                   } catch {

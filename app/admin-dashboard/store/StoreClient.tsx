@@ -6,7 +6,7 @@ import ModalDelete from "@components/shared/ModalDelete";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import { useToast } from "@/hooks/useToast-old";
-import { getAllStores, deleteStore } from "@services/database/stores";
+import { getAllStores, deleteStore } from "@services/api/stores";
 import { Input } from "@/components/ui/input";
 import StoreFormModal from "@components/Store/StoreFormModal";
 
@@ -75,10 +75,10 @@ export default function StoreClient() {
       };
    }, []);
 
-   const handleDelete = async (id?: number) => {
-      if (!id) return;
+   const handleDelete = async (route?: string) => {
+      if (!route) return;
       try {
-         await deleteStore(id);
+         await deleteStore(route);
          // refetch list
          const rows = await getAllStores();
          setStores(rows);
@@ -242,7 +242,7 @@ export default function StoreClient() {
                            textColor: "text-white",
                            bgColorHover: "bg-red-600",
                            textColorHover: "text-white",
-                           onclick: () => handleDelete(deleteTarget.id),
+                           onclick: () => handleDelete(deleteTarget.route),
                         },
                         {
                            label: "Batal",

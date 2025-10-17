@@ -11,12 +11,9 @@ import type { PromoResponse, StoreResponse } from "@/utils/interface";
 import { formatCurrency, formatPercent, formatAdmin } from "@/utils/format";
 import { useToast } from "@/hooks/useToast-old";
 // supabaseClient usage replaced by service wrappers below
-import { getAllPromos, deletePromo } from "@services/database/promos";
-import {
-   getAllPromoStores,
-   getPromoStoresByPromoId,
-} from "@services/database/promo_store";
-import { getStoresByIds } from "@services/database/stores";
+import { getAllPromos, deletePromo } from "@services/api/promos";
+import { getAllPromoStores } from "@services/api/promo_store";
+import { getAllStores } from "@services/api/stores";
 
 type PromoWithCount = PromoResponse & { storeCount?: number };
 
@@ -144,7 +141,7 @@ export default function PromoClient() {
             if (!mounted) return;
             const storesByPromo = new Map<number, number>();
             psRows.forEach(
-               (ps: { id: number; promo_id: number; store_id: number }) => {
+               (ps: { promo_id: number; store_id: number }) => {
                   storesByPromo.set(
                      ps.promo_id,
                      (storesByPromo.get(ps.promo_id) || 0) + 1
@@ -155,7 +152,7 @@ export default function PromoClient() {
                setPromos(
                   (pRows as PromoResponse[]).map((p) => ({
                      ...p,
-                     storeCount: storesByPromo.get(p.id_promo) || 0,
+                     storeCount: storesByPromo.get(p.id) || 0,
                   }))
                );
             }
@@ -173,12 +170,12 @@ export default function PromoClient() {
       };
    }, []);
 
-   const handleDelete = async (id?: number) => {
-      if (!id) return;
+   const handleDelete = async (voucher?: string) => {
+      if (!voucher) return;
       try {
-         await deletePromo(id);
+         await deletePromo(voucher);
          // local update
-         setPromos((prev) => prev.filter((s) => s.id_promo !== id));
+         setPromos((prev) => prev.filter((s) => s.voucher_code !== voucher));
          setIsDeleteOpen(false);
          setDeleteTarget(null);
          push({ type: "success", message: "Promo berhasil dihapus" });
@@ -200,21 +197,21 @@ export default function PromoClient() {
       const term = q.trim().toLowerCase();
       if (!term) return true;
       return (
-         (p.title_promo || "").toLowerCase().includes(term) ||
+         (p.title || "").toLowerCase().includes(term) ||
          (p.voucher_code || "").toLowerCase().includes(term) ||
-         String(p.min_transaction_promo || "").includes(term) ||
-         String(p.tenor_promo || "").includes(term) ||
-         String(p.subsidi_promo || "").includes(term) ||
-         String(p.admin_promo || "").includes(term) ||
+         String(p.min_transaction || "").includes(term) ||
+         String(p.tenor || "").includes(term) ||
+         String(p.subsidi || "").includes(term) ||
+         String(p.admin_fee || "").includes(term) ||
          String(p.interest_rate || "").includes(term) ||
-         (p.start_date_promo || "").includes(term) ||
-         (p.end_date_promo || "").includes(term)
+         (p.start_date || "").includes(term) ||
+         (p.end_date || "").includes(term)
       );
    });
    // apply additional filters
    const finalFiltered = filtered.filter((p) => {
       if (filterAdminType) {
-         if ((p.admin_promo_type || "") !== filterAdminType) return false;
+         if ((p.admin_fee_type || "") !== filterAdminType) return false;
       }
       if (filterActive !== "") {
          if (Boolean(p.is_active) !== Boolean(filterActive)) return false;
@@ -252,29 +249,29 @@ export default function PromoClient() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                      {finalFiltered.map((p) => (
                         <div
-                           key={p.id_promo}
+                           key={p.id}
                            className="p-4 rounded-md shadow-sm hover:shadow-md transition"
                         >
                            <div className="flex justify-between items-start gap-4">
                               <div className="flex gap-1 flex-col">
                                  <h4 className="text-sm font-semibold">
-                                    {p.title_promo}
+                                    {p.title}
                                  </h4>
                                  <div className="flex flex-col sm:flex-row gap-1 text-xs text-muted-foreground">
                                     <p>{p.voucher_code || "-"}</p>
                                     <p className="hidden md:block">-</p>
                                     <p>
                                        Min:{" "}
-                                       {formatCurrency(p.min_transaction_promo)}
+                                       {formatCurrency(p.min_transaction)}
                                     </p>
                                  </div>
                               </div>
                               <div className="text-right text-xs">
                                  <div className="text-sm font-medium">
-                                    {p.tenor_promo} bulan
+                                    {p.tenor} bulan
                                  </div>
                                  <div className="text-muted-foreground">
-                                    {p.start_date_promo} — {p.end_date_promo}
+                                    {p.start_date} — {p.end_date}
                                  </div>
                               </div>
                            </div>
@@ -286,7 +283,7 @@ export default function PromoClient() {
                                     Subsidi
                                  </div>
                                  <div className="font-medium">
-                                    {p.subsidi_promo}
+                                    {p.subsidi}
                                  </div>
                               </div>
                               <div>
@@ -295,8 +292,8 @@ export default function PromoClient() {
                                  </div>
                                  <div className="font-medium">
                                     {formatAdmin(
-                                       p.admin_promo,
-                                       p.admin_promo_type
+                                       p.admin_fee,
+                                       p.admin_fee_type
                                     )}
                                  </div>
                               </div>
@@ -341,21 +338,8 @@ export default function PromoClient() {
                                     setStoresForViewLoading(true);
                                     setStoresForViewError(null);
                                     try {
-                                       const psRows =
-                                          await getPromoStoresByPromoId(
-                                             p.id_promo
-                                          );
-                                       const ids = psRows
-                                          .map((r) => r.store_id)
-                                          .filter(Boolean) as number[];
-                                       if (ids.length === 0) {
-                                          setStoresForView([]);
-                                       } else {
-                                          const sRows = await getStoresByIds(
-                                             ids
-                                          );
-                                          setStoresForView(sRows);
-                                       }
+                                       const allStores = await getAllStores();
+                                       setStoresForView(allStores);
                                     } catch (err) {
                                        console.error(
                                           "Failed to load stores for promo view",
@@ -402,7 +386,7 @@ export default function PromoClient() {
             }
             onUpdated={(p) =>
                setPromos((prev) =>
-                  prev.map((it) => (it.id_promo === p.id_promo ? p : it))
+                  prev.map((it) => (it.id === p.id ? p : it))
                )
             }
          />
@@ -426,7 +410,7 @@ export default function PromoClient() {
                />
                <div className="relative z-50">
                   <ModalDelete
-                     title={`Hapus promo: ${deleteTarget.title_promo}`}
+                     title={`Hapus promo: ${deleteTarget.title}`}
                      onClose={() => {
                         setIsDeleteOpen(false);
                         setDeleteTarget(null);
@@ -439,7 +423,7 @@ export default function PromoClient() {
                            textColor: "text-white",
                            bgColorHover: "bg-red-600",
                            textColorHover: "text-white",
-                           onclick: () => handleDelete(deleteTarget.id_promo),
+                           onclick: () => handleDelete(deleteTarget.voucher_code),
                         },
                         {
                            label: "Batal",

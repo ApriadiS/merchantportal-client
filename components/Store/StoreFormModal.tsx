@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
 import type { StoreRequest, StoreResponse } from "@/utils/interface";
-import { createStore, updateStore } from "@services/database/stores";
+import { createStore, updateStore } from "@services/api/stores";
 import { useToast } from "@/hooks/useToast-old";
 
 interface Props {
@@ -83,7 +83,7 @@ export default function StoreFormModal({
          };
 
          if (isEditing && initial) {
-            const updatedStore = await updateStore(initial.id as number, payload);
+            const updatedStore = await updateStore(initial.route as string, payload);
             onUpdated?.(updatedStore);
             push({
                type: "success",

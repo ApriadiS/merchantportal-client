@@ -1,9 +1,7 @@
 "use client";
 import React, { useState, useMemo } from "react";
 import Link from "next/link";
-import { getStoreByRoutePublic } from "@/services/database/stores";
-import { getPromoStoresByStoreId } from "@/services/database/promo_store";
-import { getPromoById } from "@/services/database/promos";
+import { getStoreByRoutePublic, getPromosByStoreIdPublic } from "@/services/api/public";
 import { PromoResponse, StoreResponse } from "@/utils/interface";
 import { useInstallmentCalculator } from "@/hooks/useInstallmentCalculator";
 import StoreHeader from "@/components/StoreHeader";
@@ -55,9 +53,7 @@ export default function StoreSimulasiPage({ params }: Props) {
          try {
             setLoading(true);
             
-            const [storeRes] = await Promise.all([
-               getStoreByRoutePublic(storeRoute)
-            ]);
+            const storeRes = await getStoreByRoutePublic(storeRoute);
             
             if (!storeRes) {
                setStoreNotFound(true);
@@ -66,22 +62,8 @@ export default function StoreSimulasiPage({ params }: Props) {
 
             setStore(storeRes);
 
-            const [promoStores] = await Promise.all([
-               getPromoStoresByStoreId(storeRes.id)
-            ]);
-            
-            if (promoStores.length === 0) {
-               setPromos([]);
-               return;
-            }
-            
-            const promoResults = await Promise.all(
-               promoStores.map((ps) => getPromoById(ps.promo_id))
-            );
-            
-            const validPromos = promoResults.filter(
-               (p): p is PromoResponse => !!p && p.is_active
-            );
+            const promoResults = await getPromosByStoreIdPublic(storeRes.id);
+            const validPromos = promoResults.filter(p => p.is_active);
             setPromos(validPromos);
          } catch (err) {
             if (process.env.NODE_ENV === 'development') {
