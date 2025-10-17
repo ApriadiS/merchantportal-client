@@ -23,8 +23,7 @@
          "@databases/*": ["./services/database*"],
          "@services/*": ["./services/*"],
          "@utils/*": ["./utils/*"],
-         "@components/*": ["./components/*"],
-         "@hooks/*": ["./components/hooks/*"]
+         "@components/*": ["./components/*"]
       }
    },
    "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],

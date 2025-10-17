@@ -3,27 +3,20 @@ import React, { useEffect, useState } from "react";
 import Loading from "@components/shared/Loading";
 import ModalDelete from "@components/shared/ModalDelete";
 import { Button } from "@/components/ui/button";
-import {
-   Card as ShadCard,
-   CardHeader as ShadCardHeader,
-   CardContent as ShadCardContent,
-} from "@/components/ui/card";
+import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import PromoFormModal from "@components/Promo/PromoFormModal";
 import PromoViewModal from "@components/Promo/PromoViewModal";
 import type { PromoResponse, StoreResponse } from "@/utils/interface";
 import { formatCurrency, formatPercent, formatAdmin } from "@/utils/format";
-import { useToast } from "@components/hooks/useToast";
+import { useToast } from "@/hooks/useToast-old";
 // supabaseClient usage replaced by service wrappers below
-import {
-   getAllPromos,
-   deletePromo as dbDeletePromo,
-} from "@services/database/client/promos";
+import { getAllPromos, deletePromo } from "@services/database/promos";
 import {
    getAllPromoStores,
    getPromoStoresByPromoId,
-} from "@services/database/client/promo_store";
-import { getStoresByIds } from "@services/database/client/stores";
+} from "@services/database/promo_store";
+import { getStoresByIds } from "@services/database/stores";
 
 type PromoWithCount = PromoResponse & { storeCount?: number };
 
@@ -183,7 +176,7 @@ export default function PromoClient() {
    const handleDelete = async (id?: number) => {
       if (!id) return;
       try {
-         await dbDeletePromo(id);
+         await deletePromo(id);
          // local update
          setPromos((prev) => prev.filter((s) => s.id_promo !== id));
          setIsDeleteOpen(false);
@@ -231,8 +224,8 @@ export default function PromoClient() {
 
    return (
       <>
-         <ShadCard className="overflow-x-auto">
-            <ShadCardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-0">
+         <Card className="overflow-x-auto">
+            <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-0">
                <div className="flex items-start sm:items-center gap-2 sm:flex-row flex-col mb-4">
                   <div className="flex-1 min-w-0">
                      <Input
@@ -248,9 +241,9 @@ export default function PromoClient() {
                      Tambah Promo
                   </Button>
                </div>
-            </ShadCardHeader>
+            </CardHeader>
 
-            <ShadCardContent>
+            <CardContent>
                {finalFiltered.length === 0 ? (
                   <div className="p-6 text-center text-sm text-gray-500">
                      No promos found.
@@ -287,7 +280,7 @@ export default function PromoClient() {
                            </div>
 
                            {/* Desktop/Tablet: show grid details */}
-                           <div className="mt-3 grid grid-cols-3 gap-2 text-xs md:grid">
+                           <div className="mt-3 grid grid-cols-2 gap-2 text-xs md:grid">
                               <div>
                                  <div className="text-muted-foreground">
                                     Subsidi
@@ -315,6 +308,19 @@ export default function PromoClient() {
                                     {formatPercent(p.interest_rate, 2)}
                                  </div>
                               </div>
+                              {p.discount && (
+                                 <div>
+                                    <div className="text-muted-foreground">
+                                       Discount
+                                    </div>
+                                    <div className="font-medium">
+                                       {p.discount_type === "PERCENT" 
+                                          ? `${p.discount}%`
+                                          : formatCurrency(p.discount)
+                                       }
+                                    </div>
+                                 </div>
+                              )}
                            </div>
 
                            {/* (Mobile inline actions removed) */}
@@ -382,8 +388,8 @@ export default function PromoClient() {
                      ))}
                   </div>
                )}
-            </ShadCardContent>
-         </ShadCard>
+            </CardContent>
+         </Card>
          <PromoFormModal
             open={isCreateOpen || Boolean(editingPromo)}
             initial={editingPromo}

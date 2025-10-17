@@ -4,13 +4,9 @@ import type { StoreResponse } from "@/utils/interface";
 import Loading from "@components/shared/Loading";
 import ModalDelete from "@components/shared/ModalDelete";
 import { Button } from "@/components/ui/button";
-import {
-   Card as ShadCard,
-   CardHeader as ShadCardHeader,
-   CardContent as ShadCardContent,
-} from "@/components/ui/card";
-import { useToast } from "@components/hooks/useToast";
-import { getAllStores, deleteStore } from "@services/database/client/stores";
+import { Card, CardHeader, CardContent } from "@/components/ui/card";
+import { useToast } from "@/hooks/useToast-old";
+import { getAllStores, deleteStore } from "@services/database/stores";
 import { Input } from "@/components/ui/input";
 import StoreFormModal from "@components/Store/StoreFormModal";
 
@@ -123,9 +119,9 @@ export default function StoreClient() {
 
    return (
       <>
-         <ShadCard className="overflow-x-auto">
-            <ShadCardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-0">
-               <div className="flex items-start sm:items-center gap-2 sm:flex-row flex-col mb-4">
+         <Card className="overflow-x-auto">
+            <CardHeader className="flex flex-col gap-4 pb-0 sm:flex-row sm:items-center sm:justify-between">
+               <div className="flex flex-col items-start gap-2 mb-4 sm:items-center sm:flex-row">
                   <div className="flex-1 min-w-0">
                      <div className="relative">
                         <Input
@@ -138,7 +134,7 @@ export default function StoreClient() {
                            <button
                               type="button"
                               aria-label="Clear search"
-                              className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-muted-foreground hover:text-foreground"
+                              className="absolute text-xs -translate-y-1/2 right-2 top-1/2 text-muted-foreground hover:text-foreground"
                               onClick={() => setQ("")}
                            >
                               ×
@@ -152,30 +148,30 @@ export default function StoreClient() {
                      </Button>
                   </div>
                </div>
-            </ShadCardHeader>
+            </CardHeader>
 
-            <ShadCardContent>
+            <CardContent>
                {finalFiltered.length === 0 ? (
-                  <div className="p-6 text-center text-sm text-gray-500">
+                  <div className="p-6 text-sm text-center text-gray-500">
                      No stores found.
                   </div>
                ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                      {finalFiltered.map((s) => (
                         <div
                            key={s.id}
-                           className="p-4 rounded-md shadow-sm hover:shadow-md transition"
+                           className="p-4 transition rounded-md shadow-sm hover:shadow-md"
                         >
-                           <div className="flex justify-between items-start gap-4">
+                           <div className="flex items-start justify-between gap-4">
                               <div>
                                  <h4 className="text-sm font-semibold">
-                                    {s.name} - ({s.type})
+                                    {s.name} - ({s.store_type})
                                  </h4>
                                  <p className="text-xs text-muted-foreground">
                                     {s.company}
                                  </p>
                               </div>
-                              <div className="text-right text-xs">
+                              <div className="text-xs text-right">
                                  <div className="text-muted-foreground">
                                     Route
                                  </div>
@@ -185,7 +181,7 @@ export default function StoreClient() {
                               </div>
                            </div>
 
-                           <div className="mt-3 grid grid-cols-3 gap-2 text-xs">
+                           <div className="grid grid-cols-3 gap-2 mt-3 text-xs">
                               <div>
                                  <div className="text-muted-foreground">
                                     Company
@@ -202,7 +198,7 @@ export default function StoreClient() {
                               </div>
                            </div>
 
-                           <div className="mt-4 flex justify-end gap-2">
+                           <div className="flex justify-end gap-2 mt-4">
                               <Button
                                  variant="ghost"
                                  onClick={() => setEditingStore(s)}
@@ -223,8 +219,8 @@ export default function StoreClient() {
                      ))}
                   </div>
                )}
-            </ShadCardContent>
-         </ShadCard>
+            </CardContent>
+         </Card>
          {isDeleteOpen && deleteTarget && (
             <div className="fixed inset-0 z-50 flex items-center justify-center">
                <div
@@ -274,9 +270,19 @@ export default function StoreClient() {
             onCreated={(s) =>
                setStores((prev) => [s as StoreResponse, ...prev])
             }
-            onUpdated={(s) =>
-               setStores((prev) => prev.map((it) => (it.id === s.id ? s : it)))
-            }
+            onUpdated={async (s) => {
+               // Refresh data dari database untuk memastikan konsistensi
+               try {
+                  const refreshedStores = await getAllStores();
+                  setStores(refreshedStores);
+               } catch (err) {
+                  console.error("Failed to refresh stores after update:", err);
+                  // Fallback: update local state
+                  setStores((prev) =>
+                     prev.map((it) => (it.id === s.id ? s : it))
+                  );
+               }
+            }}
          />
       </>
    );

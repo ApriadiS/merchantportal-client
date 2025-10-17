@@ -28,11 +28,19 @@ if (!supabaseUrl || !supabaseAnonKey) {
 
 export const supabaseClient: SupabaseClient = createClient(
    supabaseUrl,
-   supabaseAnonKey
+   supabaseAnonKey,
+   {
+      auth: {
+         persistSession: true,
+         autoRefreshToken: true,
+         detectSessionInUrl: true,
+         storageKey: 'sb-auth-token',
+      },
+   }
 );
 
-// Log creation only on the server to avoid pulling logger into client bundles
-if (typeof window === "undefined") {
+// Lazy load logging only when needed
+if (typeof window === "undefined" && process.env.NODE_ENV === "development") {
    import("@utils/logging")
       .then((mod) =>
          mod.default?.info?.("Supabase client created", {

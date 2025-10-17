@@ -1,14 +1,21 @@
 "use client";
 import React from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import DashboardIcon from "../icon/DashboardIcon";
 import StoreIcon from "../icon/StoreIcon";
 import PromoIcon from "../icon/PromoIcon";
 import ImportIcon from "../icon/ImportIcon";
+import { signOutClient } from "@services/auth";
 
 export default function NavBar() {
    const pathname = usePathname() || "/admin-dashboard";
+   const router = useRouter();
+
+   const handleLogout = async () => {
+      await signOutClient();
+      router.push("/admin");
+   };
 
    const navItems = [
       { label: "Dashboard", href: "/admin-dashboard" },
@@ -21,11 +28,11 @@ export default function NavBar() {
       <>
          {/* Desktop: left sidebar */}
          <aside className="hidden lg:flex lg:w-64 lg:flex-col lg:fixed lg:inset-y-0 lg:left-0 border-r bg-gray-50">
-            <div className="px-4 py-6 w-64">
+            <div className="px-4 py-6 w-64 flex flex-col h-full">
                <h2 className="text-lg font-semibold mb-4">Admin</h2>
                <nav
                   aria-label="Admin navigation"
-                  className="flex flex-col gap-2"
+                  className="flex flex-col gap-2 flex-1"
                >
                   {navItems.map((item) => {
                      const active = pathname === item.href;
@@ -45,6 +52,12 @@ export default function NavBar() {
                      );
                   })}
                </nav>
+               <button
+                  onClick={handleLogout}
+                  className="mt-auto px-3 py-2 rounded-md text-sm font-medium text-left text-red-600 hover:bg-red-50"
+               >
+                  Logout
+               </button>
             </div>
          </aside>
 

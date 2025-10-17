@@ -1,7 +1,7 @@
 "use client";
 import React, { useState } from "react";
 import Image from "next/image";
-import useCurrency from "@hooks/useCurrency";
+import useCurrency from "@/hooks/useCurrency";
 
 type Result = {
    monthly: number;
@@ -41,14 +41,16 @@ export default function SimulasiPage() {
          return;
       }
 
-      // Compute flat-interest results for each tenor
+      // Compute results for each tenor
       const next: Record<number, Result> = {};
       for (const months of TENORS) {
-         // total interest = principal * rate * months
-         const totalInterest = Math.round(n * MONTHLY_RATE * months);
-         const totalPayment = Math.round(n + totalInterest);
-         // monthly payment: use Math.ceil to match typical instalment rounding
-         const monthly = Math.ceil(totalPayment / months);
+         // Calculate monthly payment: (principal/tenor) + (principal * interest_rate)
+         const principalPerMonth = n / months;
+         const interestPerMonth = n * MONTHLY_RATE;
+         const monthly = Math.ceil(principalPerMonth + interestPerMonth);
+         
+         const totalPayment = monthly * months;
+         const totalInterest = totalPayment - n;
 
          next[months] = {
             monthly,
@@ -76,9 +78,8 @@ export default function SimulasiPage() {
    const handlePriceChange = (value: string) => {
       const num = parseDigits(value);
       if (num > MAX_PRICE) {
-         // clamp to maximum and show a helpful message
+         // clamp to maximum
          setValue(MAX_PRICE);
-         setError("Harga maksimum adalah Rp 30.000.000");
          return;
       }
       // Clear previous error as input is within allowed range
@@ -96,6 +97,9 @@ export default function SimulasiPage() {
                   width={200}
                   height={200}
                   className="mx-auto"
+                  priority
+                  placeholder="blur"
+                  blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWGRkqGx0f/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8AltJagyeH0AthI5xdrLcNM91BF5pX2HaH9bcfaSXWGaRmknyJckliyjqTzSlT54b6bk+h0R+Rj9v/2Q=="
                />
                <p className="text-black text-md mt-3">
                   Hitung cicilan kredit barangmu dengan mudah
