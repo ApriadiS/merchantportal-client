@@ -1,4 +1,4 @@
-# 🏪 Merchant Portal Client v2.1.0
+# 🏪 Merchant Portal Client v2.2.0
 
 A modern Next.js application for managing merchant stores and promotional campaigns with installment calculation features.
 
@@ -18,7 +18,7 @@ A modern Next.js application for managing merchant stores and promotional campai
 - Node.js 18+ 
 - npm or yarn
 - Supabase account (for authentication only)
-- Rust API Backend (v2.1.0)
+- Rust API Backend (v1.2.0)
 
 ## 🛠️ Installation
 
@@ -72,7 +72,7 @@ merchantportal-client/
 │   └── ui/                 # UI components (shadcn/ui)
 ├── hooks/                   # Custom React hooks
 ├── services/               # API services
-│   ├── api/               # Rust API services (v2.1.0)
+│   ├── api/               # Rust API services (v1.2.0)
 │   ├── auth/              # Authentication services
 │   ├── database/          # [DEPRECATED] Direct Supabase
 │   └── supabase/          # Supabase client (auth only)
@@ -93,7 +93,7 @@ merchantportal-client/
 - **State Management**: React Hooks
 - **Analytics**: Vercel Analytics & Speed Insights
 
-## 📖 Architecture (v2.1.0)
+## 📖 Architecture (v2.2.0)
 
 ### Authentication Flow
 ```
@@ -165,7 +165,7 @@ Required environment variables (see `.env.example`):
 NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
 
-# Rust API Backend (v2.1.0)
+# Rust API Backend (v1.2.0)
 NEXT_PUBLIC_API_URL=http://localhost:3000  # Development
 # NEXT_PUBLIC_API_URL=https://api.yourdomain.com  # Production
 ```
@@ -196,27 +196,43 @@ npm run build
 # Deploy .next folder to your hosting
 ```
 
-## 📊 What's New in v2.1.0
+## 📊 What's New in v2.2.0
 
 ### Major Changes
-- 🦀 **Rust API Backend**: Migrated from direct Supabase to Rust API
-- 🌐 **Public Routes**: Store browsing without authentication
-- 🔑 **JWT Authentication**: Backend validates tokens with caching
-- 📊 **New Schema**: Simplified field names (e.g., `title` instead of `title_promo`)
-- 🔗 **Composite Keys**: PromoStore uses `{promo_id}-{store_id}` format
-- ⚡ **Performance**: Vercel Analytics & Speed Insights
+- 📱 **Mobile-First UI**: Optimized for 90% mobile users with card-style layout
+- 🎯 **PromoTenor Integration**: Full CRUD with backend v1.2.0 UUID-based operations
+- 🔗 **Bidirectional Linking**: Promo↔Store with KA/NKA filters and tenor selection
+- 🎨 **Enhanced UX**: Badge promo muncul setelah klik hitung, dropdown "REGULER"
+- 💳 **Smart Calculator**: Support admin/discount types (FIX/PERCENT), interest_rate dari promo
+- ⚠️ **Free Installment Warning**: Yellow alert box untuk promo dengan cicilan gratis
+- 🔄 **Toast Notifications**: Undo button untuk unlink actions
+- 🔐 **JWT Expiration**: Auto logout dan redirect saat token expired
+- 🎭 **Store Name Styling**: Bold uppercase dengan tight tracking
 
-### Breaking Changes
-- Supabase now only handles authentication (no direct DB queries)
-- All CRUD operations go through Rust API
-- Field names updated in Promo schema
-- PromoStore no longer has `id` field (composite key)
+### Technical Improvements
+- UUID composite key parsing fix (string slicing)
+- PromoStore tenor_ids support (uuid[])
+- Admin/discount calculation dengan type checking
+- Interest rate dari promo table (bukan subsidi)
+- Mobile touch targets (16px font, larger buttons)
+- Card layout dengan bg-red-400 background
 
-### Migration Notes
-- `services/database/*` is deprecated
-- Use `services/api/*` for all operations
-- Public pages work without login
-- Admin pages require JWT token
+### API Changes
+- New endpoint: `GET /get-promo-tenor-by-store/{store_id}` (1 request vs N+1)
+- PromoFormModal: Create/update dengan interest_rate, admin_promo_type, discount_type
+- PromoStore: tenor_ids field untuk filter tenor per store
+
+### Bug Fixes
+- Fixed Promise.all error handling (sequential fetch)
+- Fixed admin/discount type calculation (FIX vs PERCENT)
+- Fixed interest rate = 0 showing wrong total interest
+- Fixed hydration error (div inside p tag)
+- Fixed UUID composite key parsing
+
+### Migration from v2.1.0
+- Backend must be v1.2.0 or higher
+- Database schema: promo_store.tenor_ids uuid[] field
+- All promo CRUD now includes interest_rate, admin_promo_type, discount_type
 
 ## 🤝 Contributing
 
@@ -250,5 +266,5 @@ For support, email apriadisalim007@gmail.com or open an issue in the repository.
 
 **Built with ❤️ using Next.js, Rust, and Supabase**
 
-**Version**: 2.1.0  
+**Version**: 2.2.0  
 **Last Updated**: January 2025

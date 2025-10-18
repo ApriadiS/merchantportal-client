@@ -1,4 +1,4 @@
-# 📡 API Services (v2.1.0)
+# 📡 API Services (v2.2.0)
 
 Centralized API services untuk komunikasi dengan Rust backend.
 
@@ -9,7 +9,9 @@ services/api/
 ├── client.ts        # Base API client dengan JWT auth
 ├── promos.ts        # Promo CRUD operations
 ├── stores.ts        # Store CRUD operations
-└── promo_store.ts   # PromoStore CRUD operations
+├── promo_store.ts   # PromoStore CRUD operations
+├── promo_tenor.ts   # PromoTenor CRUD operations
+└── public.ts        # Public endpoints (no auth)
 ```
 
 ## 🔐 Authentication
@@ -122,28 +124,37 @@ const updated = await updatePromoStore(123, {
 await deletePromoStore(123);
 ```
 
-## 🔑 Schema Changes (v2.1.0)
+## 🔑 Schema Changes (v2.2.0)
+
+### UUID Migration
+- All primary keys migrated to UUID
+- Composite keys use string slicing (not split)
+- Format: `{uuid1}-{uuid2}` (73 chars total)
 
 ### Promo Fields
-| Old Field | New Field | Type |
-|-----------|-----------|------|
-| `id_promo` | `id` | number |
-| `title_promo` | `title` | string |
-| `min_transaction_promo` | `min_transaction` | number |
-| `admin_promo` | `admin_fee` | number |
-| `admin_promo_type` | `admin_fee_type` | string |
+- Backend uses exact Supabase field names
+- `id_promo`, `title_promo`, `admin_promo_type`, etc.
+- `interest_rate` stored in promo table (not promo_tenor)
+- `admin_promo_type` and `discount_type`: FIX or PERCENT
 
 ### PromoStore Changes
-- Removed `id` field
-- Uses composite key: `{promo_id}-{store_id}`
+- Has `id` field (UUID)
+- Composite key for operations: `{promo_id}-{store_id}`
+- New field: `tenor_ids` (uuid[]) for tenor selection
 - Endpoints: `/get-promo-store/{promo_id}-{store_id}`
+
+### PromoTenor (New)
+- Normalized from JSON to separate table
+- Full CRUD operations
+- Fields: tenor, min_transaction, admin, discount, voucher_code, etc.
 
 ### Unique Keys
 | Table | Key for Update/Delete |
 |-------|----------------------|
-| Promo | `voucher_code` |
-| Store | `route` |
-| PromoStore | `{promo_id}-{store_id}` |
+| Promo | `id_promo` (UUID) |
+| Store | `route` (string) |
+| PromoStore | `{promo_id}-{store_id}` (composite) |
+| PromoTenor | `id` (UUID) |
 
 ## ⚡ Performance
 
