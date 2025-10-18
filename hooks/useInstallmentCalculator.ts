@@ -1,4 +1,5 @@
 import { useState, useCallback } from "react";
+import { PromoTenor } from "@/types";
 import { PromoResponse } from "@/utils/interface";
 import useCurrency from "@/hooks/useCurrency";
 
@@ -8,7 +9,6 @@ type Result = {
    totalPayment: number;
 };
 
-const TENORS = [6, 9, 12];
 const MONTHLY_RATE = 0.026;
 const MAX_PRICE = 30_000_000;
 
@@ -17,11 +17,11 @@ export const useInstallmentCalculator = () => {
    const [results, setResults] = useState<Record<number, Result>>({});
    const [expanded, setExpanded] = useState<number | null>(null);
    const [error, setError] = useState<string | null>(null);
-   const [selectedPromoId, setSelectedPromoId] = useState<number | null>(null);
 
-   const calculateInstallments = useCallback((promos: PromoResponse[]) => {
-      const selectedPromo =
-         promos.find((p) => p.id_promo === selectedPromoId) || null;
+   const calculateInstallments = useCallback((tenors: PromoTenor[], promoMap: Map<string, PromoResponse>, selectedPromoId: string | null) => {
+      const selectedTenor = selectedPromoId
+         ? tenors.find((t) => t.promo_id === selectedPromoId)
+         : null;
 
       if (typeof n !== "number" || !Number.isFinite(n) || n <= 0) {
          setResults({});
@@ -37,62 +37,64 @@ export const useInstallmentCalculator = () => {
          return;
       }
 
+      const uniqueTenors = Array.from(new Set(tenors.map(t => t.tenor)));
       const next: Record<number, Result> = {};
 
-      for (const months of TENORS) {
+      for (const months of uniqueTenors) {
+         const matchingTenor = selectedPromoId
+            ? tenors.find(t => t.promo_id === selectedPromoId && t.tenor === months)
+            : null;
+
          let principal = n;
          let rate = MONTHLY_RATE;
          let adminFee = 0;
          let discountAmount = 0;
 
-         if (selectedPromo && months === selectedPromo.tenor_promo) {
-            rate = selectedPromo.interest_rate / 100;
-
-            if (selectedPromo.admin_promo_type === "PERCENT") {
-               adminFee = Math.round(n * (selectedPromo.admin_promo / 100));
+         if (matchingTenor) {
+            const promo = promoMap.get(matchingTenor.promo_id);
+            rate = promo?.interest_rate ? promo.interest_rate / 100 : MONTHLY_RATE;
+            
+            // Admin: FIX (Rp) atau PERCENT (%)
+            if (promo?.admin_promo_type === 'PERCENT') {
+               adminFee = Math.ceil((n * matchingTenor.admin) / 100);
             } else {
-               adminFee = selectedPromo.admin_promo;
+               adminFee = matchingTenor.admin;
             }
-
-            if (selectedPromo.discount) {
-               if (selectedPromo.discount_type === "PERCENT") {
-                  discountAmount = Math.round(
-                     n * (selectedPromo.discount / 100)
-                  );
-                  if (
-                     selectedPromo.max_discount &&
-                     discountAmount > selectedPromo.max_discount
-                  ) {
-                     discountAmount = selectedPromo.max_discount;
-                  }
+            
+            // Discount: FIX (Rp) atau PERCENT (%)
+            if (matchingTenor.discount > 0) {
+               if (promo?.discount_type === 'PERCENT') {
+                  discountAmount = Math.ceil((n * matchingTenor.discount) / 100);
                } else {
-                  discountAmount = selectedPromo.discount;
+                  discountAmount = matchingTenor.discount;
+               }
+               if (discountAmount > matchingTenor.max_discount) {
+                  discountAmount = matchingTenor.max_discount;
                }
             }
          }
 
          principal = n + adminFee - discountAmount;
 
-         // Adjust months for free installments
          let effectiveMonths = months;
-         if (
-            selectedPromo &&
-            months === selectedPromo.tenor_promo &&
-            selectedPromo.free_installment > 0
-         ) {
-            effectiveMonths = months - selectedPromo.free_installment;
+         if (matchingTenor && matchingTenor.free_installment > 0) {
+            effectiveMonths = months - matchingTenor.free_installment;
          }
 
-         const principalPerMonth = principal / effectiveMonths;
-         const interestPerMonth = principal * rate;
-         let monthly = Math.ceil(principalPerMonth + interestPerMonth);
-         let totalPayment = monthly * effectiveMonths;
-         let totalInterest = totalPayment - principal;
+         let monthly: number;
+         let totalPayment: number;
+         let totalInterest: number;
 
          if (rate === 0) {
-            monthly = Math.ceil(principalPerMonth);
+            monthly = Math.ceil(principal / effectiveMonths);
             totalPayment = principal;
             totalInterest = 0;
+         } else {
+            const principalPerMonth = principal / effectiveMonths;
+            const interestPerMonth = principal * rate;
+            monthly = Math.ceil(principalPerMonth + interestPerMonth);
+            totalPayment = monthly * effectiveMonths;
+            totalInterest = totalPayment - principal;
          }
 
          next[months] = { monthly, totalInterest, totalPayment };
@@ -100,7 +102,7 @@ export const useInstallmentCalculator = () => {
 
       setResults(next);
       setExpanded(null);
-   }, [n, selectedPromoId]);
+   }, [n]);
 
    const handlePriceChange = useCallback((value: string) => {
       const digits = value.replace(/[^0-9]/g, "");
@@ -113,7 +115,6 @@ export const useInstallmentCalculator = () => {
       
       if (error) setError(null);
       setValue(num);
-      setSelectedPromoId(null);
    }, [error, setValue]);
 
    return {
@@ -122,11 +123,8 @@ export const useInstallmentCalculator = () => {
       results,
       expanded,
       error,
-      selectedPromoId,
-      TENORS,
       MAX_PRICE,
       setExpanded,
-      setSelectedPromoId,
       calculateInstallments,
       handlePriceChange,
    };

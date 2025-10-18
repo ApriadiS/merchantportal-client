@@ -1,33 +1,42 @@
-import { memo } from "react";
-import { PromoResponse, StoreResponse } from "@/utils/interface";
+import { memo, useMemo } from "react";
+import { PromoTenor } from "@/types";
+import { PromoResponse } from "@/utils/interface";
 
 interface PromoSelectorProps {
-   store: StoreResponse | null;
-   availablePromos: PromoResponse[];
+   availableTenors: PromoTenor[];
+   allTenors: PromoTenor[];
    promos: PromoResponse[];
    n: number;
-   selectedPromoId: number | null;
-   selectedPromo: PromoResponse | null;
-   formatShortAmount: (amount: number) => string;
-   onPromoChange: (id: number | null) => void;
-   onCopyVoucher: () => void;
+   selectedPromoId: string | null;
+   onPromoChange: (id: string | null) => void;
 }
 
 function PromoSelector({
-   store,
-   availablePromos,
+   availableTenors,
+   allTenors,
    promos,
    n,
    selectedPromoId,
-   selectedPromo,
-   formatShortAmount,
-   onPromoChange,
-   onCopyVoucher
+   onPromoChange
 }: PromoSelectorProps) {
-   if (!store) return null;
+   const promoGroups = useMemo(() => {
+      const groups = new Map<string, { promo_id: string; title: string }>();
+      
+      availableTenors.forEach(tenor => {
+         if (!groups.has(tenor.promo_id)) {
+            const promo = promos.find(p => String(p.id_promo) === tenor.promo_id);
+            groups.set(tenor.promo_id, {
+               promo_id: tenor.promo_id,
+               title: promo?.title_promo || `Promo ${tenor.promo_id.slice(0, 8)}`
+            });
+         }
+      });
+      
+      return Array.from(groups.values());
+   }, [availableTenors, promos]);
 
    return (
-      <div className="p-4 bg-red-100 rounded-xl">
+      <div className="p-3 bg-red-100 rounded-xl">
          <label
             htmlFor="promo"
             className="block mb-2 text-sm font-medium text-gray-700"
@@ -37,52 +46,27 @@ function PromoSelector({
          <select
             id="promo"
             name="promo"
-            className="w-full p-3 text-sm text-white bg-gray-900 border border-gray-200 rounded-lg"
+            className="w-full p-3.5 text-base text-white bg-gray-900 border-0 rounded-lg focus:ring-2 focus:ring-red-500"
             value={selectedPromoId ?? ""}
-            onChange={(e) => onPromoChange(Number(e.target.value) || null)}
-            disabled={availablePromos.length === 0}
+            onChange={(e) => onPromoChange(e.target.value || null)}
+            disabled={promoGroups.length === 0}
          >
-            <option value="">-- Pilih Promo --</option>
-            {availablePromos.map((promo) => (
-               <option key={promo.id_promo} value={promo.id_promo}>
-                  {promo.title_promo} • {promo.tenor_promo}Bln •
-                  Min: {formatShortAmount(promo.min_transaction_promo)}
+            <option value="">REGULER</option>
+            {promoGroups.map((group) => (
+               <option key={group.promo_id} value={group.promo_id}>
+                  {group.title}
                </option>
             ))}
          </select>
-         {availablePromos.length === 0 && n > 0 && (
+         {promoGroups.length === 0 && n > 0 && (
             <p className="mt-2 text-sm text-red-600">
                Tidak ada promo yang memenuhi harga barang.
             </p>
          )}
-         {promos.length === 0 && (
+         {allTenors.length === 0 && (
             <p className="mt-2 text-sm text-gray-500">
                Belum ada promo tersedia untuk toko ini.
             </p>
-         )}
-
-         {selectedPromo && (
-            <div className="mt-3">
-               <label className="block mb-2 text-sm font-medium text-gray-700">
-                  Kode Voucher:
-               </label>
-               <div className="flex gap-2">
-                  <input
-                     type="text"
-                     value={selectedPromo.voucher_code}
-                     disabled
-                     className="flex-1 px-3 py-2 text-sm text-gray-700 bg-gray-100 border border-gray-300 rounded-md"
-                     readOnly
-                  />
-                  <button
-                     type="button"
-                     onClick={onCopyVoucher}
-                     className="px-3 py-2 text-sm text-white transition-colors bg-blue-500 rounded-md hover:bg-blue-600"
-                  >
-                     Copy
-                  </button>
-               </div>
-            </div>
          )}
       </div>
    );

@@ -19,14 +19,15 @@ function StoreHeader({ store }: StoreHeaderProps) {
             placeholder="blur"
             blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWGRkqGx0f/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8AltJagyeH0AthI5xdrLcNM91BF5pX2HaH9bcfaSXWGaRmknyJckliyjqTzSlT54b6bk+h0R+Rj9v/2Q=="
          />
-         <p className="mt-3 text-black text-md">
+         <h1 className="mt-5 text-2xl font-black tracking-tight text-red-400 uppercase">
             {store
-               ? `${store.name} (${store.store_type})`
+               ? `${store.name}`
                : "Hitung cicilan kredit barangmu dengan mudah"}
-         </p>
-         {store?.company && (
+         </h1>
+         {store && <p>Hitung cicilan kredit barangmu dengan mudah</p>}
+         {/* {store?.company && (
             <p className="text-sm text-gray-600">{store.company}</p>
-         )}
+         )} */}
       </header>
    );
 }

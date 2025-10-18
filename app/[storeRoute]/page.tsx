@@ -1,14 +1,15 @@
 "use client";
 import React, { useState, useMemo } from "react";
 import Link from "next/link";
-import { getStoreByRoutePublic, getPromosByStoreIdPublic } from "@/services/api/public";
-import { PromoResponse, StoreResponse } from "@/utils/interface";
+import { getStoreByRoutePublic, getPromoTenorsByStoreIdPublic } from "@/services/api/public";
+import { getPromosByStoreIdPublic } from "@/services/api/promos";
+import { StoreResponse, PromoResponse } from "@/utils/interface";
+import { PromoTenor } from "@/types";
 import { useInstallmentCalculator } from "@/hooks/useInstallmentCalculator";
 import StoreHeader from "@/components/StoreHeader";
 import PriceInput from "@/components/PriceInput";
 import PromoSelector from "@/components/PromoSelector";
 import InstallmentResults from "@/components/InstallmentResults";
-import PromoDetails from "@/components/PromoDetails";
 import Footer from "@/components/Footer";
 
 interface Props {
@@ -23,19 +24,20 @@ export default function StoreSimulasiPage({ params }: Props) {
       results,
       expanded,
       error,
-      selectedPromoId,
-      TENORS,
       setExpanded,
-      setSelectedPromoId,
       calculateInstallments,
       handlePriceChange
    } = useInstallmentCalculator();
    
+   const [tenors, setTenors] = useState<PromoTenor[]>([]);
    const [promos, setPromos] = useState<PromoResponse[]>([]);
+   const [promoMap, setPromoMap] = useState<Map<string, PromoResponse>>(new Map());
    const [store, setStore] = useState<StoreResponse | null>(null);
    const [loading, setLoading] = useState(true);
    const [showToast, setShowToast] = useState(false);
    const [storeNotFound, setStoreNotFound] = useState(false);
+   const [selectedPromoId, setSelectedPromoId] = useState<string | null>(null);
+   const [calculatedPromoId, setCalculatedPromoId] = useState<string | null>(null);
 
    const formatRupiahLocal = (amount: number) => `Rp ${amount.toLocaleString("id-ID")}`;
    const formatShortAmount = (amount: number) => {
@@ -62,9 +64,18 @@ export default function StoreSimulasiPage({ params }: Props) {
 
             setStore(storeRes);
 
-            const promoResults = await getPromosByStoreIdPublic(storeRes.id);
-            const validPromos = promoResults.filter(p => p.is_active);
-            setPromos(validPromos);
+            const [tenorResults, promoResults] = await Promise.all([
+               getPromoTenorsByStoreIdPublic(String(storeRes.id)),
+               getPromosByStoreIdPublic(String(storeRes.id))
+            ]);
+            
+            const availableTenors = tenorResults.filter(t => t.is_available);
+            setTenors(availableTenors);
+            setPromos(promoResults);
+            
+            const map = new Map<string, PromoResponse>();
+            promoResults.forEach(p => map.set(String(p.id_promo), p));
+            setPromoMap(map);
          } catch (err) {
             if (process.env.NODE_ENV === 'development') {
                console.error("Error fetching store data:", err);
@@ -76,25 +87,27 @@ export default function StoreSimulasiPage({ params }: Props) {
       fetchData();
    }, [storeRoute]);
 
-   const availablePromos = useMemo(() => {
-      if (!n || !promos.length) return [];
-      return promos.filter((promo) => n >= promo.min_transaction_promo);
-   }, [n, promos]);
+   const availableTenors = useMemo(() => {
+      if (!n || !tenors.length) return [];
+      return tenors.filter((tenor) => n >= tenor.min_transaction);
+   }, [n, tenors]);
 
-   const selectedPromo = useMemo(() => {
-      if (!selectedPromoId) return null;
-      return promos.find((p) => p.id_promo === selectedPromoId) || null;
-   }, [selectedPromoId, promos]);
+   const uniqueTenors = useMemo(() => {
+      return Array.from(new Set(tenors.map(t => t.tenor))).sort((a, b) => a - b);
+   }, [tenors]);
 
    const handleSubmit = (e: React.FormEvent) => {
       e.preventDefault();
-      calculateInstallments(promos);
+      calculateInstallments(tenors, promoMap, selectedPromoId);
+      setCalculatedPromoId(selectedPromoId);
    };
 
    const handleCopyVoucher = async () => {
-      if (!selectedPromo) return;
+      if (!expanded || !selectedPromoId) return;
+      const activeTenor = tenors.find(t => t.promo_id === selectedPromoId && t.tenor === expanded);
+      if (!activeTenor?.voucher_code) return;
       try {
-         await navigator.clipboard.writeText(selectedPromo.voucher_code);
+         await navigator.clipboard.writeText(activeTenor.voucher_code);
          setShowToast(true);
          setTimeout(() => setShowToast(false), 2000);
       } catch (err) {
@@ -167,64 +180,55 @@ export default function StoreSimulasiPage({ params }: Props) {
    }
 
    return (
-      <div className="flex items-center justify-center min-h-screen p-4 bg-red-400">
-         <main className="w-full max-w-md p-4 bg-white shadow-2xl rounded-2xl sm:p-6">
+      <div className="min-h-screen bg-red-400 flex items-center justify-center p-3 md:p-4">
+         <main className="w-full max-w-md bg-white shadow-2xl rounded-2xl p-3 sm:p-4">
             <StoreHeader store={store} />
             
-            <hr className="my-6 border-gray-100" />
+            <hr className="my-4 border-gray-100" />
 
-            <form className="space-y-4" onSubmit={handleSubmit}>
+            <form className="space-y-3" onSubmit={handleSubmit}>
                <PriceInput dot={dot} onPriceChange={handlePriceChange} />
 
                <PromoSelector
-                  store={store}
-                  availablePromos={availablePromos}
+                  availableTenors={availableTenors}
+                  allTenors={tenors}
                   promos={promos}
                   n={n}
                   selectedPromoId={selectedPromoId}
-                  selectedPromo={selectedPromo}
-                  formatShortAmount={formatShortAmount}
                   onPromoChange={setSelectedPromoId}
-                  onCopyVoucher={handleCopyVoucher}
                />
 
-               <div className="pt-2">
-                  <button
-                     type="submit"
-                     aria-label="Hitung Cicilan"
-                     className="w-full px-4 py-3 font-bold text-white transition duration-300 ease-in-out bg-red-500 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2"
-                  >
-                     Hitung Cicilan
-                  </button>
-               </div>
+               <button
+                  type="submit"
+                  aria-label="Hitung Cicilan"
+                  className="w-full px-4 py-3.5 text-base font-bold text-white transition-all active:scale-[0.98] bg-red-500 rounded-lg shadow-md"
+               >
+                  Hitung Cicilan
+               </button>
 
                {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
 
                <InstallmentResults
-                  TENORS={TENORS}
+                  tenors={uniqueTenors}
                   results={results}
                   expanded={expanded}
-                  selectedPromo={selectedPromo}
+                  promoTenors={tenors}
+                  promoMap={promoMap}
+                  selectedPromoId={calculatedPromoId}
                   n={n}
                   formatRupiahLocal={formatRupiahLocal}
                   onToggleExpanded={handleToggleExpanded}
+                  onCopyVoucher={handleCopyVoucher}
                />
 
-               {selectedPromo && (
-                  <PromoDetails
-                     selectedPromo={selectedPromo}
-                     n={n}
-                     formatRupiahLocal={formatRupiahLocal}
-                  />
-               )}
             </form>
 
             <Footer />
          </main>
 
          {showToast && (
-            <div className="fixed z-50 px-4 py-2 text-white bg-green-500 rounded-md shadow-lg top-4 right-4 animate-in fade-in-0 slide-in-from-top-2">
-               Kode voucher berhasil disalin!
+            <div className="fixed z-50 px-4 py-3 text-sm font-medium text-white bg-green-500 rounded-lg shadow-lg top-4 left-1/2 -translate-x-1/2 animate-in fade-in-0 slide-in-from-top-2">
+               ✓ Kode voucher berhasil disalin!
             </div>
          )}
       </div>

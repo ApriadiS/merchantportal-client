@@ -48,7 +48,7 @@ export default function SimulasiPage() {
          const principalPerMonth = n / months;
          const interestPerMonth = n * MONTHLY_RATE;
          const monthly = Math.ceil(principalPerMonth + interestPerMonth);
-         
+
          const totalPayment = monthly * months;
          const totalInterest = totalPayment - n;
 
@@ -88,8 +88,8 @@ export default function SimulasiPage() {
    };
 
    return (
-      <div className="min-h-screen bg-red-400 flex items-center justify-center p-4">
-         <main className="w-full max-w-md bg-white rounded-2xl shadow-2xl p-4 sm:p-6">
+      <div className="flex items-center justify-center min-h-screen p-4 bg-red-400">
+         <main className="w-full max-w-md p-4 bg-white shadow-2xl rounded-2xl sm:p-6">
             <header className="text-center">
                <Image
                   src="/akulakupaylater-logo.png"
@@ -101,7 +101,7 @@ export default function SimulasiPage() {
                   placeholder="blur"
                   blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWGRkqGx0f/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8AltJagyeH0AthI5xdrLcNM91BF5pX2HaH9bcfaSXWGaRmknyJckliyjqTzSlT54b6bk+h0R+Rj9v/2Q=="
                />
-               <p className="text-black text-md mt-3">
+               <p className="mt-3 text-black text-md">
                   Hitung cicilan kredit barangmu dengan mudah
                </p>
             </header>
@@ -109,17 +109,17 @@ export default function SimulasiPage() {
             <hr className="my-6 border-gray-100" />
 
             <form className="space-y-4" onSubmit={handleSubmit}>
-               <div className="p-4 rounded-xl space-y-3 bg-red-100">
+               <div className="p-4 space-y-3 bg-red-100 rounded-xl">
                   <div>
                      <label
                         htmlFor="price"
-                        className="block text-sm font-medium text-gray-700 mb-2"
+                        className="block mb-2 text-sm font-medium text-gray-700"
                      >
                         Harga Barang
                      </label>
 
                      <div className="relative">
-                        <span className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500">
+                        <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500 pointer-events-none">
                            Rp
                         </span>
                         <input
@@ -128,7 +128,7 @@ export default function SimulasiPage() {
                            type="text"
                            inputMode="numeric"
                            placeholder="0"
-                           className="w-full pl-9 pr-4 py-3 rounded-lg border border-gray-200 bg-gray-900 text-white placeholder-gray-400 focus:ring-2 focus-accent focus:border-transparent transition"
+                           className="w-full py-3 pr-4 text-white placeholder-gray-400 transition bg-gray-900 border border-gray-200 rounded-lg pl-9 focus:ring-2 focus-accent focus:border-transparent"
                            aria-label="Harga Barang"
                            required
                            // 1. Atur `value` input dari state `dot`
@@ -145,16 +145,16 @@ export default function SimulasiPage() {
                   <button
                      type="submit"
                      aria-label="Hitung Cicilan"
-                     className="w-full font-bold py-3 px-4 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 transition duration-300 ease-in-out bg-red-500 text-white"
+                     className="w-full px-4 py-3 font-bold text-white transition duration-300 ease-in-out bg-red-500 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2"
                   >
                      Hitung Cicilan
                   </button>
                </div>
 
-               {error && <p className="text-sm text-red-600 mt-2">{error}</p>}
+               {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
 
-               <div className="bg-red-100 p-4 rounded-xl">
-                  <h2 className="text-center font-semibold text-red-500 mb-4 text-md">
+               <div className="p-4 bg-red-100 rounded-xl">
+                  <h2 className="mb-4 font-semibold text-center text-red-500 text-md">
                      Hasil Simulasi Cicilan
                   </h2>
 
@@ -165,11 +165,11 @@ export default function SimulasiPage() {
                         return (
                            <div key={months} className="text-center">
                               <div className="p-3 rounded-lg flex flex-col items-center justify-center min-h-[100px] gap-1 sm:gap-0 bg-gray-50">
-                                 <p className="text-sm text-gray-600 h-6">
+                                 <p className="h-6 text-sm text-gray-600">
                                     {months} Bulan
                                  </p>
-                                 <div className="flex-grow flex items-center my-1 text-center justify-center w-full">
-                                    <p className="text-sm sm:text-base font-bold text-red-500 whitespace-nowrap">
+                                 <div className="flex items-center justify-center flex-grow w-full my-1 text-center">
+                                    <p className="text-sm font-bold text-red-500 sm:text-base whitespace-nowrap">
                                        {res
                                           ? formatRupiahLocal(res.monthly)
                                           : "-"}
@@ -210,7 +210,7 @@ export default function SimulasiPage() {
                   </div>
                   {/* Details panel for selected tenor */}
                   {expanded !== null && results[expanded] && (
-                     <div className="mt-4 bg-white p-4 rounded-md text-black">
+                     <div className="p-4 mt-4 text-black bg-white rounded-md">
                         <div className="flex items-center justify-between mb-2">
                            <h3 className="text-sm text-gray-600">Rincian</h3>
                            <span className="text-xs text-gray-500">
@@ -231,7 +231,7 @@ export default function SimulasiPage() {
                                  )}
                               </strong>
                            </div>
-                           <div className="flex justify-between text-sm font-semibold border-t border-black pt-2">
+                           <div className="flex justify-between pt-2 text-sm font-semibold border-t border-black">
                               <span>Total Pembayaran:</span>
                               <strong className="text-red-500">
                                  {formatRupiahLocal(
@@ -247,7 +247,7 @@ export default function SimulasiPage() {
 
             <footer className="mt-6 text-center">
                <p className="text-xs text-gray-400">Powered by Akulaku</p>
-               <p className="text-xs text-gray-500 mt-3 px-4 leading-relaxed">
+               <p className="px-4 mt-3 text-xs leading-relaxed text-gray-500">
                   <strong>Catatan:</strong> Simulasi ini hanya perkiraan.
                   Hubungi kami untuk detail lebih lanjut.
                </p>
@@ -256,7 +256,7 @@ export default function SimulasiPage() {
                   href="https://wa.me/6285705887356"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="mt-4 inline-flex items-center justify-center gap-2  text-white font-bold py-3 px-6 rounded-full shadow-md active:scale-95 transition-all duration-300 bg-green-500"
+                  className="inline-flex items-center justify-center gap-2 px-6 py-3 mt-4 font-bold text-white transition-all duration-300 bg-green-500 rounded-full shadow-md active:scale-95"
                >
                   <svg
                      className="w-6 h-6"

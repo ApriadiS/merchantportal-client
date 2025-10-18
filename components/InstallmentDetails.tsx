@@ -1,3 +1,4 @@
+import { PromoTenor } from "@/types";
 import { PromoResponse } from "@/utils/interface";
 
 type Result = {
@@ -10,51 +11,53 @@ interface InstallmentDetailsProps {
    expanded: number;
    results: Record<number, Result>;
    n: number;
-   selectedPromo: PromoResponse | null;
+   activeTenor: PromoTenor | null;
+   activePromo: PromoResponse | null | undefined;
    formatRupiahLocal: (amount: number) => string;
+   onCopyVoucher: () => void;
 }
 
 export default function InstallmentDetails({
    expanded,
    results,
    n,
-   selectedPromo,
+   activeTenor,
+   activePromo,
    formatRupiahLocal,
+   onCopyVoucher,
 }: InstallmentDetailsProps) {
-   const hasDiscount = Boolean(
-      selectedPromo &&
-         selectedPromo.discount != null &&
-         expanded === selectedPromo.tenor_promo
-   );
+   const hasDiscount = Boolean(activeTenor && activeTenor.discount > 0);
 
-   console.log("expanded: ");
-   console.log(expanded);
-   console.log("results:");
-   console.log(results);
-   console.log("results[expanded]?:");
-   console.log(results[expanded]);
-   console.log(
-      "results[expanded]?.totalInterest: " + results[expanded]?.totalInterest
-   );
+   const adminFee =
+      activeTenor && activePromo
+         ? activePromo.admin_promo_type === "PERCENT"
+            ? Math.ceil((n * activeTenor.admin) / 100)
+            : activeTenor.admin
+         : 0;
+
+   const discountAmount =
+      activeTenor && activePromo && hasDiscount
+         ? (() => {
+              const disc =
+                 activePromo.discount_type === "PERCENT"
+                    ? Math.ceil((n * activeTenor.discount) / 100)
+                    : activeTenor.discount;
+              return Math.min(disc, activeTenor.max_discount);
+           })()
+         : 0;
 
    return (
-      <div className="p-4 mt-4 text-black bg-white rounded-md">
+      <div className="p-3 mt-3 text-black bg-white rounded-lg">
          <div className="flex items-center justify-between mb-2">
             <h3 className="text-sm text-gray-600">Rincian</h3>
-
-            {selectedPromo &&
-            expanded === selectedPromo.tenor_promo &&
-            selectedPromo.free_installment > 0 ? (
-               <>
-                  <div className="flex flex-row gap-1">
-                     <span className="text-xs text-gray-500 line-through">
-                        {expanded} Bulan
-                     </span>
-                     <span className="ml-1 text-xs text-gray-500">
-                        {expanded - selectedPromo.free_installment} Bulan
-                     </span>
-                  </div>
-               </>
+            {activeTenor && activeTenor.free_installment > 0 ? (
+               <div className="flex items-center gap-1 text-xs text-gray-500">
+                  <span>Tenor:</span>
+                  <span className="line-through">{expanded} bulan</span>
+                  <span className="font-semibold text-red-500">
+                     {expanded - activeTenor.free_installment} bulan
+                  </span>
+               </div>
             ) : (
                <span className="text-xs text-gray-500">
                   Tenor: {expanded} bulan
@@ -62,82 +65,34 @@ export default function InstallmentDetails({
             )}
          </div>
 
-         <div className="space-y-2">
-            <div className="flex justify-between text-sm">
+         <div className="space-y-1.5">
+            <div className="flex justify-between text-xs">
                <span>Harga Produk:</span>
                <strong>{formatRupiahLocal(n)}</strong>
             </div>
 
-            {/* Admin fee */}
-            {selectedPromo &&
-               expanded === selectedPromo.tenor_promo &&
-               selectedPromo.admin_promo > 0 && (
-                  <div className="flex justify-between text-sm">
-                     <span>Biaya Admin:</span>
-                     <strong>
-                        +
-                        {selectedPromo.admin_promo_type === "PERCENT"
-                           ? `${
-                                selectedPromo.admin_promo
-                             }% (${formatRupiahLocal(
-                                Math.round(
-                                   n * (selectedPromo.admin_promo / 100)
-                                )
-                             )})`
-                           : formatRupiahLocal(selectedPromo.admin_promo)}
-                     </strong>
-                  </div>
-               )}
-
-            {/* Discount */}
-            {hasDiscount && selectedPromo && (
-               <div className="flex justify-between text-sm text-green-600">
-                  <span>Discount:</span>
-                  <strong>
-                     -
-                     {selectedPromo.discount_type === "PERCENT"
-                        ? `${selectedPromo.discount}% (${formatRupiahLocal(
-                             Math.min(
-                                Math.round(
-                                   n * ((selectedPromo.discount || 0) / 100)
-                                ),
-                                selectedPromo.max_discount || Infinity
-                             )
-                          )})`
-                        : formatRupiahLocal(selectedPromo.discount || 0)}
-                  </strong>
+            {adminFee > 0 && (
+               <div className="flex justify-between text-xs">
+                  <span>Biaya Admin:</span>
+                  <strong>+{formatRupiahLocal(adminFee)}</strong>
                </div>
             )}
 
-            <div className="flex justify-between pt-2 text-sm font-semibold border-t border-gray-300">
+            {discountAmount > 0 && (
+               <div className="flex justify-between text-xs text-green-600">
+                  <span>Discount:</span>
+                  <strong>-{formatRupiahLocal(discountAmount)}</strong>
+               </div>
+            )}
+
+            <div className="flex justify-between pt-1.5 text-xs font-semibold border-t border-gray-300">
                <span>Pokok Akhir:</span>
                <strong>
-                  {formatRupiahLocal(
-                     selectedPromo && expanded === selectedPromo.tenor_promo
-                        ? n +
-                             (selectedPromo.admin_promo_type === "PERCENT"
-                                ? Math.round(
-                                     n * (selectedPromo.admin_promo / 100)
-                                  )
-                                : selectedPromo.admin_promo) -
-                             (selectedPromo.discount
-                                ? selectedPromo.discount_type === "PERCENT"
-                                   ? Math.min(
-                                        Math.round(
-                                           n *
-                                              ((selectedPromo.discount || 0) /
-                                                 100)
-                                        ),
-                                        selectedPromo.max_discount || Infinity
-                                     )
-                                   : selectedPromo.discount || 0
-                                : 0)
-                        : n
-                  )}
+                  {formatRupiahLocal(n + adminFee - discountAmount)}
                </strong>
             </div>
 
-            <div className="flex justify-between text-sm">
+            <div className="flex justify-between text-xs">
                <span>Total Biaya Bunga:</span>
                <strong>
                   {results[expanded]?.totalInterest
@@ -146,7 +101,7 @@ export default function InstallmentDetails({
                </strong>
             </div>
 
-            <div className="flex justify-between pt-2 text-sm font-semibold border-t border-black">
+            <div className="flex justify-between pt-1.5 text-xs font-semibold border-t border-black">
                <span>Total Pembayaran:</span>
                <strong className="text-red-500">
                   {results[expanded]?.totalPayment
@@ -154,6 +109,43 @@ export default function InstallmentDetails({
                      : "Rp 0"}
                </strong>
             </div>
+
+            {activeTenor && activeTenor.free_installment > 0 && (
+               <div className="p-2.5 mt-2 bg-yellow-50 border border-yellow-200 rounded-lg">
+                  <div className="text-xs leading-relaxed text-yellow-800">
+                     <div className="mb-1 font-bold">⚠️ Perhatian:</div>
+                     <div className="font-medium">
+                        Gratis cicilan hanya diberikan jika pembayaran tepat
+                        waktu. Keterlambatan akan mengembalikan tenor ke{" "}
+                        {expanded} bulan dan promo hangus.
+                     </div>
+                  </div>
+               </div>
+            )}
+
+            {activeTenor?.voucher_code && (
+               <div className="pt-2 mt-2 border-t border-gray-300">
+                  <label className="block mb-1.5 text-xs font-medium text-gray-600">
+                     Kode Voucher:
+                  </label>
+                  <div className="flex gap-2">
+                     <input
+                        type="text"
+                        value={activeTenor.voucher_code}
+                        disabled
+                        className="flex-1 px-3 py-2.5 text-sm font-mono text-gray-700 bg-gray-100 border-0 rounded-lg"
+                        readOnly
+                     />
+                     <button
+                        type="button"
+                        onClick={onCopyVoucher}
+                        className="px-4 py-2.5 text-sm font-medium text-white bg-blue-500 rounded-lg active:scale-95 transition-transform"
+                     >
+                        Copy
+                     </button>
+                  </div>
+               </div>
+            )}
          </div>
       </div>
    );
