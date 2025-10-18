@@ -24,22 +24,22 @@ export async function getPromosByStoreIdPublic(storeId: string): Promise<PromoRe
 // ============================================================================
 
 export async function getAllPromos(): Promise<PromoResponse[]> {
-   return apiRequest<Promo[]>("/get-promo");
+   return apiRequest<PromoResponse[]>("/get-promo");
 }
 
 export async function getPromoById(id: string): Promise<PromoResponse> {
-   return apiRequest<Promo>(`/get-promo/${id}`);
+   return apiRequest<PromoResponse>(`/get-promo/${id}`);
 }
 
 export async function createPromo(payload: Partial<PromoRequest>): Promise<PromoResponse> {
-   return apiRequest<Promo>("/create-promo", {
+   return apiRequest<PromoResponse>("/create-promo", {
       method: "POST",
       body: JSON.stringify(payload),
    });
 }
 
 export async function updatePromo(id: string, payload: Partial<PromoRequest>): Promise<PromoResponse> {
-   return apiRequest<Promo>(`/update-promo/${id}`, {
+   return apiRequest<PromoResponse>(`/update-promo/${id}`, {
       method: "PUT",
       body: JSON.stringify(payload),
    });

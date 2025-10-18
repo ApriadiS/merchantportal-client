@@ -35,9 +35,9 @@ export default function InstallmentResults({
    onCopyVoucher,
 }: InstallmentResultsProps) {
    const activeTenor = expanded && selectedPromoId
-      ? promoTenors.find(t => t.promo_id === selectedPromoId && t.tenor === expanded)
+      ? promoTenors.find(t => t.promo_id === selectedPromoId && t.tenor === expanded) || null
       : null;
-   const activePromo = activeTenor ? promoMap.get(activeTenor.promo_id) : null;
+   const activePromo = activeTenor ? promoMap.get(activeTenor.promo_id) || null : null;
 
    return (
       <div className="p-3 bg-red-100 rounded-xl">

@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
-import { Promo } from "@/types";
+import { PromoResponse } from "@/utils/interface";
 import { getPromoById } from "@/services/api/promos";
 
 export function usePromo(promoId?: string) {
-  const [promo, setPromo] = useState<Promo | null>(null);
+  const [promo, setPromo] = useState<PromoResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
 

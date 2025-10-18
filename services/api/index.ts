@@ -8,4 +8,4 @@ export * from './promos';
 export * from './promo_tenor';
 export * from './stores';
 export * from './promo_store';
-export * from './public';
+export { getStoreByRoutePublic, getPromoByVoucherPublic, getPromoTenorsByStoreIdPublic } from './public';

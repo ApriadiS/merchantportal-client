@@ -1,9 +1,9 @@
 import { useState, useEffect, useCallback } from "react";
-import { Promo } from "@/types";
+import { PromoResponse } from "@/utils/interface";
 import { getAllPromos } from "@/services/api/promos";
 
 export function usePromos() {
-  const [promos, setPromos] = useState<Promo[]>([]);
+  const [promos, setPromos] = useState<PromoResponse[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
 

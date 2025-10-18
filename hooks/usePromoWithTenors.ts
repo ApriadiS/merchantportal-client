@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react";
-import { Promo, PromoTenor } from "@/types";
+import { PromoTenor } from "@/types";
+import { PromoResponse } from "@/utils/interface";
 import { getPromoById } from "@/services/api/promos";
 import { getAllPromoTenors } from "@/services/api/promo_tenor";
 
 export function usePromoWithTenors(promoId?: string) {
-  const [promo, setPromo] = useState<Promo | null>(null);
+  const [promo, setPromo] = useState<PromoResponse | null>(null);
   const [tenors, setTenors] = useState<PromoTenor[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
