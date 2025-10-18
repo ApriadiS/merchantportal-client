@@ -21,7 +21,6 @@ export default function NavBar() {
       { label: "Dashboard", href: "/admin-dashboard" },
       { label: "Store", href: "/admin-dashboard/store" },
       { label: "Promo", href: "/admin-dashboard/promo" },
-      // { label: "Insert Data", href: "/admin-dashboard/insert-data" },
    ];
 
    return (

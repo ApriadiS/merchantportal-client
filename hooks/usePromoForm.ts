@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
-import { PromoRequest, PromoResponse, StoreResponse } from "@/utils/interface";
+import { PromoResponse, StoreResponse } from "@/utils/interface";
 import { AdminPromoType } from "@/utils/types";
-import { createPromo, updatePromo, getPromoByVoucher } from "@services/api/promos";
+import { createPromo, updatePromo } from "@services/api/promos";
 import {
-   getAllPromoStores,
+   getPromoStoresByPromo,
+   getPromoStoresByStore,
    createPromoStore,
    deletePromoStore,
 } from "@services/api/promo_store";
@@ -57,7 +58,7 @@ export const usePromoForm = ({
    const [selectedStoreToAdd, setSelectedStoreToAdd] = useState<string>("");
 
    const { push } = useToast();
-   const isEditing = Boolean(initial && initial.id);
+   const isEditing = Boolean(initial && initial.id_promo);
 
    const parseCurrencyInput = (s: string) => {
       const digits = String(s).replace(/[^0-9-]/g, "");
@@ -76,16 +77,23 @@ export const usePromoForm = ({
    // Reset form when modal opens/closes or initial changes
    useEffect(() => {
       if (initial) {
-         setTitle(initial.title || "");
+         setTitle(initial.title_promo || "");
          setVoucher(initial.voucher_code || "");
-         setMin(initial.min_transaction ?? 0);
-         setTenor(String(initial.tenor ?? 6));
-         setSubsidiPercent(initial.subsidi ?? 0);
-         setAdminValue(initial.admin_fee ?? 0);
-         setAdminType(String(initial.admin_fee_type ?? "FIX"));
+         setMin(initial.min_transaction_promo ?? 0);
+         setTenor(String(initial.tenor_promo ?? 6));
+         setSubsidiPercent(initial.subsidi_promo ?? 0);
+         setAdminValue(initial.admin_promo ?? 0);
+         setAdminType(String(initial.admin_promo_type ?? "FIX"));
          setInterest(initial.interest_rate ?? 0);
-         setStartDate(initial.start_date ?? new Date().toISOString().slice(0, 10));
-         setEndDate(initial.end_date ?? new Date(Date.now() + 1000 * 60 * 60 * 24 * 30).toISOString().slice(0, 10));
+         setStartDate(
+            initial.start_date_promo ?? new Date().toISOString().slice(0, 10)
+         );
+         setEndDate(
+            initial.end_date_promo ??
+               new Date(Date.now() + 1000 * 60 * 60 * 24 * 30)
+                  .toISOString()
+                  .slice(0, 10)
+         );
          setFreeInstallment(initial.free_installment ?? 0);
          setIsActive(initial.is_active ?? true);
          setDiscount(initial.discount ?? 0);
@@ -101,7 +109,11 @@ export const usePromoForm = ({
          setAdminType("FIX");
          setInterest(0);
          setStartDate(new Date().toISOString().slice(0, 10));
-         setEndDate(new Date(Date.now() + 1000 * 60 * 60 * 24 * 30).toISOString().slice(0, 10));
+         setEndDate(
+            new Date(Date.now() + 1000 * 60 * 60 * 24 * 30)
+               .toISOString()
+               .slice(0, 10)
+         );
          setFreeInstallment(0);
          setIsActive(true);
          setDiscount(0);
@@ -114,28 +126,33 @@ export const usePromoForm = ({
    useEffect(() => {
       let mounted = true;
       async function loadMappings() {
-         if (!open || !initial || !initial.id) return;
+         if (!open || !initial || !initial.id_promo) return;
          setMappingLoading(true);
          setMappingError(null);
          try {
-            const maps = await getPromoStoresByPromo(initial.id);
+            const maps = await getPromoStoresByPromo(String(initial.id_promo));
             const all = await getAllStores();
-            
+
             const assigned = maps
                .map((m) => ({
-                  id: Date.now() + Math.random(), // Temporary ID for UI
+                  id: Date.now() + Math.random(),
                   store: all.find((s) => s.id === m.store_id)!,
                }))
-               .filter((x) => x.store !== undefined);
+               .filter((x) => x.store !== undefined) as unknown as {
+               id: number;
+               store: StoreResponse;
+            }[];
 
             if (mounted) {
                setAssignedMappings(assigned);
-               setAllStores(all);
+               setAllStores(all as unknown as StoreResponse[]);
             }
          } catch (err) {
             console.error("usePromoForm: failed to load mappings", err);
             if (mounted)
-               setMappingError(err instanceof Error ? err.message : String(err));
+               setMappingError(
+                  err instanceof Error ? err.message : String(err)
+               );
          } finally {
             if (mounted) setMappingLoading(false);
          }
@@ -153,7 +170,7 @@ export const usePromoForm = ({
          if (!open || initial) return;
          try {
             const all = await getAllStores();
-            if (mounted) setAllStores(all);
+            if (mounted) setAllStores(all as unknown as StoreResponse[]);
          } catch {
             // optional: handle error
          }
@@ -167,7 +184,7 @@ export const usePromoForm = ({
    const addStoreToPromo = async (storeId: number) => {
       setMappingLoading(true);
       try {
-         if (!initial || !initial.id) {
+         if (!initial || !initial.id_promo) {
             const sRow = allStores.find((s) => s.id === storeId);
             if (!sRow) return;
             setAssignedMappings((prev) => [
@@ -182,7 +199,7 @@ export const usePromoForm = ({
             return;
          }
 
-         const existingMaps = await getPromoStoresByStore(storeId);
+         const existingMaps = await getPromoStoresByStore(String(storeId));
          if (existingMaps.length > 0) {
             push({
                type: "error",
@@ -190,12 +207,12 @@ export const usePromoForm = ({
             });
             return;
          }
-         
+
          await createPromoStore({
-            promo_id: initial.id,
-            store_id: storeId,
+            promo_id: String(initial.id_promo),
+            store_id: String(storeId),
          });
-         
+
          const sRow = allStores.find((s) => s.id === storeId);
          setAssignedMappings((prev) => [
             ...prev,
@@ -218,14 +235,17 @@ export const usePromoForm = ({
    };
 
    const removeMapping = async (mappingId: number) => {
-      if (!initial || !initial.id) return;
-      
+      if (!initial || !initial.id_promo) return;
+
       setMappingLoading(true);
       try {
          const mapping = assignedMappings.find((m) => m.id === mappingId);
          if (!mapping) return;
-         
-         await deletePromoStore(initial.id, mapping.store.id);
+
+         await deletePromoStore(
+            String(initial.id_promo),
+            String(mapping.store.id)
+         );
          setAssignedMappings((prev) => prev.filter((m) => m.id !== mappingId));
          push({ type: "success", message: "Promo dihapus dari store" });
       } catch (err) {
@@ -241,7 +261,7 @@ export const usePromoForm = ({
 
    const handleSubmit = async (e: React.FormEvent) => {
       e.preventDefault();
-      console.log('handleSubmit called, subsidiPercent:', subsidiPercent);
+      console.log("handleSubmit called, subsidiPercent:", subsidiPercent);
       setLoading(true);
       try {
          const errs: Record<string, string> = {};
@@ -251,18 +271,19 @@ export const usePromoForm = ({
          setErrors(errs);
          if (Object.keys(errs).length > 0) return;
 
-         const payload: PromoRequest = {
+         const payload: Record<string, unknown> = {
             title: title,
             min_transaction: Number(minNormal) || 0,
-            tenor: Number(tenor) || initial?.tenor || 6,
+            tenor: Number(tenor) || initial?.tenor_promo || 6,
             admin_fee: adminValue === "" ? 0 : Number(adminValue),
             admin_fee_type: (adminType as AdminPromoType) || "FIX",
             interest_rate: interest === "" ? 0 : Number(interest),
             voucher_code: voucher,
-            start_date: startDate,
-            end_date: endDate,
+            start_date: String(startDate),
+            end_date: String(endDate),
             subsidi: subsidiPercent === "" ? 0 : Number(subsidiPercent),
-            free_installment: freeInstallment === "" ? 0 : Number(freeInstallment),
+            free_installment:
+               freeInstallment === "" ? 0 : Number(freeInstallment),
             is_active: isActive,
             discount: discount === "" ? 0 : Number(discount),
             discount_type: discountType as "FIX" | "PERCENT",
@@ -285,15 +306,18 @@ export const usePromoForm = ({
                for (const m of assignedMappings) {
                   try {
                      await createPromoStore({
-                        promo_id: created.id,
-                        store_id: m.store.id,
+                        promo_id: String(
+                           (created as unknown as Record<string, unknown>)
+                              .id_promo
+                        ),
+                        store_id: String(m.store.id),
                      });
                   } catch {
                      // Optional: tampilkan error toast jika gagal satu store
                   }
                }
             }
-            onCreated?.(created as PromoResponse);
+            onCreated?.(created as unknown as PromoResponse);
             push({ type: "success", message: "Promo berhasil dibuat" });
          }
 
@@ -308,35 +332,51 @@ export const usePromoForm = ({
 
    return {
       // Form state
-      title, setTitle,
-      voucher, setVoucher,
-      minCurrency, setMin,
-      tenor, setTenor,
-      subsidiPercent, setSubsidiPercent,
-      adminValue, setAdminValue,
-      adminType, setAdminType,
-      interest, setInterest,
-      startDate, setStartDate,
-      endDate, setEndDate,
-      freeInstallment, setFreeInstallment,
-      isActive, setIsActive,
-      discount, setDiscount,
-      discountType, setDiscountType,
-      maxDiscount, setMaxDiscount,
-      
+      title,
+      setTitle,
+      voucher,
+      setVoucher,
+      minCurrency,
+      setMin,
+      tenor,
+      setTenor,
+      subsidiPercent,
+      setSubsidiPercent,
+      adminValue,
+      setAdminValue,
+      adminType,
+      setAdminType,
+      interest,
+      setInterest,
+      startDate,
+      setStartDate,
+      endDate,
+      setEndDate,
+      freeInstallment,
+      setFreeInstallment,
+      isActive,
+      setIsActive,
+      discount,
+      setDiscount,
+      discountType,
+      setDiscountType,
+      maxDiscount,
+      setMaxDiscount,
+
       // UI state
       loading,
       errors,
       isEditing,
-      
+
       // Store mapping state
       assignedMappings,
       allStores,
       mappingLoading,
       mappingError,
-      selectedStoreToAdd, setSelectedStoreToAdd,
+      selectedStoreToAdd,
+      setSelectedStoreToAdd,
       availableStoresToAdd,
-      
+
       // Actions
       parseCurrencyInput,
       addStoreToPromo,

@@ -1,87 +1,36 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import type { StoreResponse } from "@/utils/interface";
 import Loading from "@components/shared/Loading";
 import ModalDelete from "@components/shared/ModalDelete";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import { useToast } from "@/hooks/useToast-old";
-import { getAllStores, deleteStore } from "@services/api/stores";
+import { deleteStore } from "@services/api/stores";
 import { Input } from "@/components/ui/input";
 import StoreFormModal from "@components/Store/StoreFormModal";
+import StoreViewModal from "@components/Store/StoreViewModal";
+import PromoLinkingModal from "@components/Store/PromoLinkingModal";
+import { useStoreList } from "@/hooks/useStoreList";
+import { useStoreFilters } from "@/hooks/useStoreFilters";
+import Toast from "@components/shared/Toast";
 
 export default function StoreClient() {
-   const [stores, setStores] = useState<StoreResponse[]>([]);
-   const [isLoading, setIsLoading] = useState(true);
-   // const [error, setError] = useState<Error | null>(null);
+   const { stores, loading: isLoading, removeStore } = useStoreList();
+   const { q, setQ, filtered: finalFiltered } = useStoreFilters(stores);
    const [deleteTarget, setDeleteTarget] = useState<StoreResponse | null>(null);
    const [isDeleteOpen, setIsDeleteOpen] = useState(false);
-   const [q, setQ] = useState("");
-   const [filterCompany, setFilterCompany] = useState<string | "">("");
-   const [filterRoute, setFilterRoute] = useState("");
    const [isCreateOpen, setIsCreateOpen] = useState(false);
    const [editingStore, setEditingStore] = useState<StoreResponse | null>(null);
-   const { push: pushToast } = useToast();
-
-   const STORAGE_KEY = "store:list:filters";
-
-   // resetFilters removed (unused)
-
-   // load persisted filter state on mount
-   useEffect(() => {
-      try {
-         if (typeof window === "undefined") return;
-         const raw = localStorage.getItem(STORAGE_KEY);
-         if (!raw) return;
-         const parsed = JSON.parse(raw || "{}");
-         if (parsed.q) setQ(parsed.q);
-         if (parsed.filterCompany) setFilterCompany(parsed.filterCompany);
-         if (parsed.filterRoute) setFilterRoute(parsed.filterRoute);
-      } catch (err) {
-         console.warn("Could not load persisted store filters", err);
-      }
-   }, []);
-
-   // persist filters when they change
-   useEffect(() => {
-      try {
-         if (typeof window === "undefined") return;
-         const payload = { q, filterCompany, filterRoute };
-         localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
-      } catch {
-         // ignore
-      }
-   }, [q, filterCompany, filterRoute]);
-
-   // Fallback: if refine's useList returned no data after loading, try direct
-   // Supabase client fetch. This is a pragmatic fallback while we debug why
-   // the Refine hook isn't populating `data` in this environment.
-   useEffect(() => {
-      let mounted = true;
-      (async () => {
-         try {
-            const rows = await getAllStores();
-            if (!mounted) return;
-            setStores(rows);
-         } catch (err) {
-            console.error("getAllStores failed", err);
-            // setError(err as Error); // removed: error state not used
-         } finally {
-            if (mounted) setIsLoading(false);
-         }
-      })();
-      return () => {
-         mounted = false;
-      };
-   }, []);
+   const [viewingStore, setViewingStore] = useState<StoreResponse | null>(null);
+   const [linkingStore, setLinkingStore] = useState<StoreResponse | null>(null);
+   const { push: pushToast, toasts } = useToast();
 
    const handleDelete = async (route?: string) => {
       if (!route) return;
       try {
          await deleteStore(route);
-         // refetch list
-         const rows = await getAllStores();
-         setStores(rows);
+         removeStore(route);
          setIsDeleteOpen(false);
          setDeleteTarget(null);
          pushToast({ type: "success", message: "Store berhasil dihapus" });
@@ -93,32 +42,16 @@ export default function StoreClient() {
 
    if (isLoading) return <Loading label="Memuat data..." speed={1.4} />;
 
-   const filtered = stores.filter((s) => {
-      const term = q.trim().toLowerCase();
-      if (!term) return true;
-      return (
-         s.name.toLowerCase().includes(term) ||
-         s.company.toLowerCase().includes(term) ||
-         (s.route || "").toLowerCase().includes(term)
-      );
-   });
-
-   // (Filter UI is currently disabled)
-
-   // apply additional filters from the popover
-   const finalFiltered = filtered.filter((s) => {
-      if (filterCompany) {
-         if ((s.company || "") !== filterCompany) return false;
-      }
-      if (filterRoute) {
-         if (!(s.route || "").toLowerCase().includes(filterRoute.toLowerCase()))
-            return false;
-      }
-      return true;
-   });
-
    return (
       <>
+         {toasts.map((toast) => (
+            <Toast
+               key={toast.id}
+               message={toast.message}
+               type={toast.type}
+               action={toast.action}
+            />
+         ))}
          <Card className="overflow-x-auto">
             <CardHeader className="flex flex-col gap-4 pb-0 sm:flex-row sm:items-center sm:justify-between">
                <div className="flex flex-col items-start gap-2 mb-4 sm:items-center sm:flex-row">
@@ -200,13 +133,22 @@ export default function StoreClient() {
 
                            <div className="flex justify-end gap-2 mt-4">
                               <Button
+                                 variant="outline"
+                                 size="sm"
+                                 onClick={() => setViewingStore(s)}
+                              >
+                                 View
+                              </Button>
+                              <Button
                                  variant="ghost"
+                                 size="sm"
                                  onClick={() => setEditingStore(s)}
                               >
                                  Edit
                               </Button>
                               <Button
                                  variant="destructive"
+                                 size="sm"
                                  onClick={() => {
                                     setDeleteTarget(s);
                                     setIsDeleteOpen(true);
@@ -267,22 +209,27 @@ export default function StoreClient() {
                setIsCreateOpen(false);
                setEditingStore(null);
             }}
-            onCreated={(s) =>
-               setStores((prev) => [s as StoreResponse, ...prev])
-            }
-            onUpdated={async (s) => {
-               // Refresh data dari database untuk memastikan konsistensi
-               try {
-                  const refreshedStores = await getAllStores();
-                  setStores(refreshedStores);
-               } catch (err) {
-                  console.error("Failed to refresh stores after update:", err);
-                  // Fallback: update local state
-                  setStores((prev) =>
-                     prev.map((it) => (it.id === s.id ? s : it))
-                  );
-               }
+            onCreated={() => window.location.reload()}
+            onUpdated={() => window.location.reload()}
+         />
+         <StoreViewModal
+            open={Boolean(viewingStore)}
+            store={viewingStore}
+            onClose={() => setViewingStore(null)}
+            onEdit={(s) => {
+               setViewingStore(null);
+               setEditingStore(s);
             }}
+            onLinkPromos={(s) => {
+               setViewingStore(null);
+               setLinkingStore(s);
+            }}
+         />
+         <PromoLinkingModal
+            open={Boolean(linkingStore)}
+            storeId={String(linkingStore?.id || "")}
+            storeName={linkingStore?.name || ""}
+            onClose={() => setLinkingStore(null)}
          />
       </>
    );

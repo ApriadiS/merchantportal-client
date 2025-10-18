@@ -83,17 +83,16 @@ export default function StoreFormModal({
          };
 
          if (isEditing && initial) {
-            const updatedStore = await updateStore(initial.route as string, payload);
-            onUpdated?.(updatedStore);
+            await updateStore(initial.route as string, payload);
+            onUpdated?.({ ...initial, ...payload } as StoreResponse);
             push({
                type: "success",
                message: "Store berhasil diperbarui",
             });
          } else {
             console.log("Creating store with payload:", payload);
-            const created = await createStore(payload);
-            // create mutation will update refine list; return created-like payload
-            onCreated?.(created as StoreResponse);
+            await createStore(payload);
+            onCreated?.(payload as unknown as StoreResponse);
             push({
                type: "success",
                message: "Store berhasil dibuat",

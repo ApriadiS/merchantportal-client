@@ -14,9 +14,9 @@ export async function apiRequest<T>(
 ): Promise<T> {
    const token = await getAuthToken();
    
-   const headers: HeadersInit = {
+   const headers: Record<string, string> = {
       "Content-Type": "application/json",
-      ...options.headers,
+      ...(options.headers as Record<string, string>),
    };
 
    if (token) {
@@ -29,7 +29,23 @@ export async function apiRequest<T>(
    });
 
    if (!response.ok) {
-      throw new Error(`API Error: ${response.statusText}`);
+      if (response.status === 401) {
+         const supabase = createClient();
+         await supabase.auth.signOut();
+         window.location.href = "/admin";
+         throw new Error("Session expired. Please login again.");
+      }
+      const contentType = response.headers.get("content-type");
+      if (contentType && contentType.includes("application/json")) {
+         const errorData = await response.json();
+         throw new Error(`API Error: ${errorData.message || response.statusText}`);
+      }
+      throw new Error(`API Error: ${response.statusText} (${response.status})`);
+   }
+
+   const contentType = response.headers.get("content-type");
+   if (!contentType || !contentType.includes("application/json")) {
+      throw new Error(`API returned non-JSON response. Is the backend running at ${API_URL}?`);
    }
 
    return response.json();

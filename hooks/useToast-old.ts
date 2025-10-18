@@ -4,6 +4,10 @@ export interface ToastOptions {
    type?: "success" | "error" | "info";
    message: string;
    duration?: number; // ms
+   action?: {
+      label: string;
+      onClick: () => void;
+   };
 }
 
 export interface Toast {
@@ -11,6 +15,10 @@ export interface Toast {
    type: "success" | "error" | "info";
    message: string;
    open: boolean;
+   action?: {
+      label: string;
+      onClick: () => void;
+   };
 }
 
 export function useToast() {
@@ -24,11 +32,12 @@ export function useToast() {
          type: opts.type || "info",
          message: opts.message,
          open: true,
+         action: opts.action,
       };
       setToasts((prev) => [toast, ...prev]);
       setTimeout(() => {
          setToasts((prev) => prev.filter((t) => t.id !== toast.id));
-      }, opts.duration || 3000);
+      }, opts.duration || 5000);
    }, []);
 
    const dismiss = useCallback((id: number) => {

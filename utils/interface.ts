@@ -36,18 +36,18 @@ export interface StoreRequest {
 /* ---------------------- public.promo ---------------------- */
 /** Full row returned from `public.promo` (v2.1.0 schema) */
 export interface PromoResponse {
-   id: number; // CHANGED from id_promo
-   title: string; // CHANGED from title_promo
-   min_transaction: number; // CHANGED from min_transaction_promo
-   tenor: number; // CHANGED from tenor_promo
-   subsidi: number; // CHANGED from subsidi_promo
-   admin_fee: number; // CHANGED from admin_promo
-   admin_fee_type: AdminPromoType; // CHANGED from admin_promo_type
+   id_promo: number;
+   title_promo: string;
+   min_transaction_promo: number;
+   tenor_promo: number;
+   subsidi_promo: number;
+   admin_promo: number;
+   admin_promo_type: AdminPromoType;
    interest_rate: number;
    voucher_code: string;
    is_active: boolean;
-   start_date: string; // CHANGED from start_date_promo
-   end_date: string; // CHANGED from end_date_promo
+   start_date_promo: string;
+   end_date_promo: string;
    free_installment: number;
    discount?: number;
    discount_type?: DiscountType;
@@ -56,16 +56,16 @@ export interface PromoResponse {
 
 /** Payload to create a `public.promo` row (v2.1.0 schema) */
 export interface PromoRequest {
-   title: string; // CHANGED from title_promo
-   min_transaction: number; // CHANGED from min_transaction_promo
-   tenor: number; // CHANGED from tenor_promo
-   subsidi?: number; // CHANGED from subsidi_promo
-   admin_fee: number; // CHANGED from admin_promo
-   admin_fee_type: AdminPromoType; // CHANGED from admin_promo_type
+   title_promo: string;
+   min_transaction_promo: number;
+   tenor_promo: number;
+   subsidi_promo?: number;
+   admin_promo: number;
+   admin_promo_type: AdminPromoType;
    interest_rate: number;
    voucher_code: string;
-   start_date: string | Date; // CHANGED from start_date_promo
-   end_date: string | Date; // CHANGED from end_date_promo
+   start_date_promo: string | Date;
+   end_date_promo: string | Date;
    free_installment?: number;
    is_active?: boolean;
    discount?: number;
@@ -89,17 +89,17 @@ export interface PromoStoreRequest {
 
 /* ---------------------- Object Data ---------------------- */
 export interface PromoObject {
-   title: string; // CHANGED from title_promo
-   min_transaction: number; // CHANGED from min_transaction_promo
-   tenor: number; // CHANGED from tenor_promo
-   subsidi: number; // CHANGED from subsidi_promo
-   admin_fee: number; // CHANGED from admin_promo
-   admin_fee_type: AdminPromoType; // CHANGED from admin_promo_type
+   title_promo: string;
+   min_transaction_promo: number;
+   tenor_promo: number;
+   subsidi_promo: number;
+   admin_promo: number;
+   admin_promo_type: AdminPromoType;
    interest_rate: number;
    voucher_code: string;
    is_active: boolean;
-   start_date: string; // CHANGED from start_date_promo
-   end_date: string; // CHANGED from end_date_promo
+   start_date_promo: string;
+   end_date_promo: string;
    free_installment: number;
    discount?: number;
    discount_type?: DiscountType;
