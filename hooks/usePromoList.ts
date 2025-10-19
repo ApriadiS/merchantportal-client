@@ -39,6 +39,7 @@ export function usePromoList() {
                storeCount: storesByPromo.get(String(p.id_promo)) || 0,
             })
          );
+         mappedPromos.sort((a, b) => a.title_promo.localeCompare(b.title_promo));
 
          console.log("Mapped promos:", mappedPromos);
          setPromos(mappedPromos);

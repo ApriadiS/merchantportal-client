@@ -12,7 +12,8 @@ export function useStoreList() {
     setError(null);
     try {
       const rows = await getAllStores();
-      setStores(rows as unknown as StoreResponse[]);
+      const sorted = (rows as unknown as StoreResponse[]).sort((a, b) => a.name.localeCompare(b.name));
+      setStores(sorted);
     } catch (err) {
       setError(err instanceof Error ? err : new Error("Failed to fetch stores"));
     } finally {
