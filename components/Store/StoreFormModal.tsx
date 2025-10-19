@@ -117,7 +117,7 @@ export default function StoreFormModal({
 
          <form
             onSubmit={handleSubmit}
-            className="relative z-50 bg-white rounded-t-lg md:rounded-lg p-4 md:p-6 w-full md:w-[550px] max-w-full shadow-lg max-h-[85vh] overflow-y-auto mx-4"
+            className="relative z-50 bg-white rounded-lg p-4 md:p-6 w-full md:w-[550px] max-w-full shadow-lg max-h-[85vh] overflow-y-auto mx-4"
             style={{ WebkitOverflowScrolling: "touch" }}
          >
             <h3 className="text-base md:text-lg font-semibold mb-3">

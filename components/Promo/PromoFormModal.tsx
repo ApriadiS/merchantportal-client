@@ -106,7 +106,7 @@ export default function PromoFormModal({
          />
          <form
             onSubmit={handleSubmit}
-            className="relative z-50 bg-white rounded-t-lg p-6 w-full max-w-md md:rounded-md md:w-[550px] shadow-lg max-h-[85vh] overflow-y-auto overflow-x-hidden mx-4"
+            className="relative z-50 bg-white rounded-lg p-6 w-full max-w-md md:w-[550px] shadow-lg max-h-[85vh] overflow-y-auto overflow-x-hidden mx-4"
             style={{ WebkitOverflowScrolling: "touch" }}
          >
             <h3 className="mb-4 text-lg font-semibold">
