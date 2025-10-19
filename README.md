@@ -1,4 +1,4 @@
-# 🏪 Merchant Portal Client v2.2.0
+# 🏪 Merchant Portal Client v2.2.2
 
 A modern Next.js application for managing merchant stores and promotional campaigns with installment calculation features.
 
@@ -196,6 +196,33 @@ npm run build
 # Deploy .next folder to your hosting
 ```
 
+## 📊 What's New in v2.2.2
+
+### UX Improvements
+- ⚡ **Seamless Link/Unlink**: No page refresh when linking/unlinking stores and promos
+- ⚠️ **Warning Indicator**: Shows ⚠️ when promo-store linked but no tenors activated
+- 🎯 **Available Tenors Display**: Shows available tenors (is_available=true) next to Link/Unlink buttons
+- 🔄 **Real-time State Updates**: Instant UI updates after tenor selection changes
+- 📱 **Mobile-Optimized Modals**: Accordion UI with scrollable sections for better mobile UX
+- 🎯 **Auto-Activate Single Tenor**: Automatically activates tenor when only one is available
+- 🔤 **Alphabetical Sorting**: All lists sorted alphabetically (stores by name, promos by title, tenors by number)
+- 🎨 **Consistent Rounded Modals**: All modals use rounded-lg for visual consistency
+
+### Technical Changes
+- Optimized state management with Map data structures for O(1) lookups
+- Added callback mechanism for parent-child component state synchronization
+- Filter tenors by is_available property in TenorSelectionModal
+- Removed unnecessary loading states for smoother UX
+- Accordion component for collapsible sections in view modals
+- Max-height constraints with scrollbars for long lists
+- Automatic sorting applied in hooks and components
+
+### Migration from v2.2.1
+- No breaking changes - fully backward compatible
+- Improved performance with local state updates and sorting
+
+---
+
 ## 📊 What's New in v2.2.0
 
 ### Major Changes
@@ -266,5 +293,5 @@ For support, email apriadisalim007@gmail.com or open an issue in the repository.
 
 **Built with ❤️ using Next.js, Rust, and Supabase**
 
-**Version**: 2.2.0  
+**Version**: 2.2.2  
 **Last Updated**: January 2025

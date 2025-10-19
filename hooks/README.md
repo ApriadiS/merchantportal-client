@@ -10,7 +10,11 @@ hooks/
 ├── useInstallmentCalculator.ts # Installment calculation logic
 ├── usePromoForm.ts             # Promo form state management
 ├── usePromo.tsx                # Promo data fetching
+├── usePromoList.ts             # Promo list with sorting (A-Z)
+├── usePromoFilters.ts          # Promo filtering logic
 ├── useStore.tsx                # Store data fetching
+├── useStoreList.ts             # Store list with sorting (A-Z)
+├── useStoreFilters.ts          # Store filtering logic
 ├── use-toast.ts                # Toast notifications (shadcn)
 ├── use-mobile.tsx              # Mobile detection
 └── useToast-old.ts             # Legacy toast hook
@@ -81,6 +85,39 @@ Fetch and manage store data.
 
 ```tsx
 const { stores, loading, error, refetch } = useStore();
+```
+
+### `useStoreList()`
+Fetch stores with automatic alphabetical sorting (A-Z by name).
+
+```tsx
+const { stores, loading, error, refetch, addStore, updateStore, removeStore } = useStoreList();
+// stores are automatically sorted alphabetically
+```
+
+### `usePromoList()`
+Fetch promos with automatic alphabetical sorting (A-Z by title) and store count.
+
+```tsx
+const { promos, loading, error, refetch, addPromo, updatePromo, removePromo } = usePromoList();
+// promos are automatically sorted alphabetically
+// each promo includes storeCount property
+```
+
+### `useStoreFilters(stores)`
+Filter stores by search query.
+
+```tsx
+const { q, setQ, filtered } = useStoreFilters(stores);
+// filtered stores based on name, company, or route
+```
+
+### `usePromoFilters(promos)`
+Filter promos by search query.
+
+```tsx
+const { q, setQ, filtered } = usePromoFilters(promos);
+// filtered promos based on title or voucher code
 ```
 
 ### `use-toast()`

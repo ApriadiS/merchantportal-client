@@ -30,15 +30,22 @@ Dashboard components:
 
 ### `Store/`
 Store management:
-- `StoreFormModal.tsx` - Create/edit store modal
+- `StoreFormModal.tsx` - Create/edit store modal (rounded-lg)
+- `StoreViewModal.tsx` - View store details with accordion
+- `PromoLinkingModal.tsx` - Link promos to store (seamless, sorted)
+- `TenorSelectionModal.tsx` - Select tenors for promo-store
 - `Item.tsx` - Store list item
 
 ### `Promo/`
 Promo management:
-- `PromoFormModal.tsx` - Create/edit promo modal
-- `PromoViewModal.tsx` - View promo details
+- `PromoFormModal.tsx` - Create/edit promo modal (rounded-lg)
+- `PromoViewModal.tsx` - View promo details with accordion
+- `StoreLinkingModal.tsx` - Link stores to promo (seamless, sorted)
 - `PromoStoreMapping.tsx` - Assign stores to promos
 - `PromoFormFields.tsx` - Form field components
+- `PromoBasicForm.tsx` - Basic promo form
+- `PromoTenorForm.tsx` - Tenor form
+- `TenorManagementModal.tsx` - Manage promo tenors
 - `Item.tsx` - Promo list item
 
 ### `icon/`
