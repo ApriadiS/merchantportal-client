@@ -26,12 +26,12 @@ export default function NavBar() {
    return (
       <>
          {/* Desktop: left sidebar */}
-         <aside className="hidden lg:flex lg:w-64 lg:flex-col lg:fixed lg:inset-y-0 lg:left-0 border-r bg-gray-50">
-            <div className="px-4 py-6 w-64 flex flex-col h-full">
-               <h2 className="text-lg font-semibold mb-4">Admin</h2>
+         <aside className="hidden border-r lg:flex lg:w-64 lg:flex-col lg:fixed lg:inset-y-0 lg:left-0 bg-gray-50">
+            <div className="flex flex-col w-64 h-full px-4 py-6">
+               <h2 className="mb-4 text-lg font-semibold">Admin</h2>
                <nav
                   aria-label="Admin navigation"
-                  className="flex flex-col gap-2 flex-1"
+                  className="flex flex-col flex-1 gap-2"
                >
                   {navItems.map((item) => {
                      const active = pathname === item.href;
@@ -53,7 +53,7 @@ export default function NavBar() {
                </nav>
                <button
                   onClick={handleLogout}
-                  className="mt-auto px-3 py-2 rounded-md text-sm font-medium text-left text-red-600 hover:bg-red-50"
+                  className="px-3 py-2 mt-auto text-sm font-medium text-left text-red-600 rounded-md hover:bg-red-50"
                >
                   Logout
                </button>
@@ -61,7 +61,7 @@ export default function NavBar() {
          </aside>
 
          {/* Mobile: bottom navigation */}
-         <nav className="fixed bottom-0 left-0 right-0 bg-white border-t py-2 px-4 flex items-center justify-around lg:hidden">
+         <nav className="fixed bottom-0 left-0 right-0 grid items-center grid-cols-12 px-4 py-2 bg-white border-t lg:hidden">
             {navItems.map((item) => {
                const active = pathname === item.href;
                return (
@@ -70,10 +70,12 @@ export default function NavBar() {
                      href={item.href}
                      className={
                         "flex flex-col items-center text-xs " +
+                        (navItems.length === 3 ? "col-span-4" : "col-span-3") +
+                        " " +
                         (active ? "text-black font-semibold" : "text-gray-500")
                      }
                   >
-                     <span className="h-6 w-6 bg-slate-200 rounded-full mb-1 items-center justify-center flex">
+                     <span className="flex items-center justify-center w-6 h-6 grid-cols-12 mb-1 rounded-full bg-slate-200">
                         {item.label === "Dashboard" ? (
                            <DashboardIcon />
                         ) : item.label === "Store" ? (

@@ -4,7 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { getAllStores } from "@/services/api/stores";
 import { getAllPromoStores, createPromoStore, deletePromoStore } from "@/services/api/promo_store";
-import type { Store } from "@/types";
+import { getAllPromoTenors } from "@/services/api/promo_tenor";
+import type { Store, PromoStore, PromoTenor } from "@/types";
 import TenorSelectionModal from "../Store/TenorSelectionModal";
 import { useToast } from "@/hooks/useToast-old";
 
@@ -18,6 +19,8 @@ interface Props {
 export default function StoreLinkingModal({ open, onClose, promoId, promoTitle }: Props) {
    const [stores, setStores] = useState<Store[]>([]);
    const [linkedStoreIds, setLinkedStoreIds] = useState<Set<string>>(new Set());
+   const [promoStoreMap, setPromoStoreMap] = useState<Map<string, PromoStore>>(new Map());
+   const [availableTenors, setAvailableTenors] = useState<PromoTenor[]>([]);
    const [loading, setLoading] = useState(false);
    const [storeTypeFilter, setStoreTypeFilter] = useState<string>("ALL");
    const [tenorSelectionStore, setTenorSelectionStore] = useState<Store | null>(null);
@@ -33,12 +36,21 @@ export default function StoreLinkingModal({ open, onClose, promoId, promoTitle }
    const fetchData = async () => {
       setLoading(true);
       try {
-         const [allStores, promoStores] = await Promise.all([
+         const [allStores, promoStores, tenors] = await Promise.all([
             getAllStores(),
             getAllPromoStores({ promo_id: promoId }),
+            getAllPromoTenors({ promo_id: promoId }),
          ]);
+         allStores.sort((a, b) => a.name.localeCompare(b.name));
          setStores(allStores);
+         
+         const psMap = new Map<string, PromoStore>();
+         promoStores.forEach(ps => psMap.set(ps.store_id, ps));
+         setPromoStoreMap(psMap);
          setLinkedStoreIds(new Set(promoStores.map((ps) => ps.store_id)));
+         const availTenors = tenors.filter(t => t.is_available);
+         availTenors.sort((a, b) => a.tenor - b.tenor);
+         setAvailableTenors(availTenors);
       } catch (err) {
          console.error("Error fetching data:", err);
       } finally {
@@ -48,13 +60,18 @@ export default function StoreLinkingModal({ open, onClose, promoId, promoTitle }
 
    const handleToggle = async (storeId: string) => {
       const isCurrentlyLinked = linkedStoreIds.has(storeId);
-      setLoading(true);
       try {
          if (isCurrentlyLinked) {
             await deletePromoStore(promoId, storeId);
             const prevState = new Set(linkedStoreIds);
+            const prevMap = new Map(promoStoreMap);
             setLinkedStoreIds((prev) => {
                const next = new Set(prev);
+               next.delete(storeId);
+               return next;
+            });
+            setPromoStoreMap((prev) => {
+               const next = new Map(prev);
                next.delete(storeId);
                return next;
             });
@@ -67,6 +84,7 @@ export default function StoreLinkingModal({ open, onClose, promoId, promoTitle }
                      try {
                         await createPromoStore({ promo_id: promoId, store_id: storeId });
                         setLinkedStoreIds(prevState);
+                        setPromoStoreMap(prevMap);
                         pushToast({ type: "success", message: "Restored" });
                      } catch (err) {
                         console.error("Undo failed:", err);
@@ -76,15 +94,16 @@ export default function StoreLinkingModal({ open, onClose, promoId, promoTitle }
                },
             });
          } else {
-            await createPromoStore({ promo_id: promoId, store_id: storeId });
+            const tenor_ids = availableTenors.length === 1 ? [availableTenors[0].id] : undefined;
+            
+            const newPs = await createPromoStore({ promo_id: promoId, store_id: storeId, tenor_ids });
             setLinkedStoreIds((prev) => new Set(prev).add(storeId));
-            pushToast({ type: "success", message: "Store linked" });
+            setPromoStoreMap((prev) => new Map(prev).set(storeId, newPs));
+            pushToast({ type: "success", message: availableTenors.length === 1 ? "Store linked with tenor auto-activated" : "Store linked" });
          }
       } catch (err) {
          console.error("Error toggling store:", err);
          pushToast({ type: "error", message: "Failed to toggle store" });
-      } finally {
-         setLoading(false);
       }
    };
 
@@ -138,18 +157,29 @@ export default function StoreLinkingModal({ open, onClose, promoId, promoTitle }
                      <div className="grid grid-cols-1 gap-2 max-h-[500px] overflow-y-auto">
                         {filteredStores.map((store) => {
                            const isLinked = linkedStoreIds.has(store.id);
+                           const promoStore = promoStoreMap.get(store.id);
+                           const activeTenorIds = promoStore?.tenor_ids || [];
+                           const hasActiveTenors = activeTenorIds.length > 0;
+                           const showWarning = isLinked && !hasActiveTenors;
+                           
                            return (
                               <div
                                  key={store.id}
-                                 className={`p-3 rounded border flex justify-between items-center ${
+                                 className={`p-3 rounded border flex items-center gap-2 ${
                                     isLinked ? "bg-green-50 border-green-300" : "bg-muted/10"
                                  }`}
                               >
+                                 {showWarning && <span className="text-yellow-600 text-lg">⚠️</span>}
                                  <div className="flex-1">
                                     <div className="font-medium">{store.name}</div>
                                     <div className="text-xs text-muted-foreground">
                                        {store.company} • {store.store_type}
                                     </div>
+                                    {isLinked && availableTenors.length > 0 && (
+                                       <div className="text-xs text-blue-600 mt-1">
+                                          Available: {availableTenors.map(t => `${t.tenor}m`).join(", ")}
+                                       </div>
+                                    )}
                                  </div>
                                  <div className="flex gap-2">
                                     {isLinked && (
@@ -167,7 +197,6 @@ export default function StoreLinkingModal({ open, onClose, promoId, promoTitle }
                                        variant={isLinked ? "destructive" : "default"}
                                        size="sm"
                                        onClick={() => handleToggle(store.id)}
-                                       disabled={loading}
                                     >
                                        {isLinked ? "Unlink" : "Link"}
                                     </Button>
@@ -194,6 +223,9 @@ export default function StoreLinkingModal({ open, onClose, promoId, promoTitle }
                storeId={tenorSelectionStore.id}
                promoTitle={promoTitle}
                storeName={tenorSelectionStore.name}
+               onSave={(updated) => {
+                  setPromoStoreMap((prev) => new Map(prev).set(tenorSelectionStore.id, updated));
+               }}
             />
          )}
       </div>

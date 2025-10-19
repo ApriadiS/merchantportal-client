@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { getAllPromoTenors } from "@/services/api/promo_tenor";
 import { getPromoStore, updatePromoStore } from "@/services/api/promo_store";
-import type { PromoTenor } from "@/types";
+import type { PromoTenor, PromoStore } from "@/types";
 
 interface Props {
    open: boolean;
@@ -13,9 +13,10 @@ interface Props {
    storeId: string;
    promoTitle: string;
    storeName: string;
+   onSave?: (updatedPromoStore: PromoStore) => void;
 }
 
-export default function TenorSelectionModal({ open, onClose, promoId, storeId, promoTitle, storeName }: Props) {
+export default function TenorSelectionModal({ open, onClose, promoId, storeId, promoTitle, storeName, onSave }: Props) {
    const [tenors, setTenors] = useState<PromoTenor[]>([]);
    const [selectedTenorIds, setSelectedTenorIds] = useState<Set<string>>(new Set());
    const [loading, setLoading] = useState(false);
@@ -62,6 +63,7 @@ export default function TenorSelectionModal({ open, onClose, promoId, storeId, p
             tenor_ids: Array.from(selectedTenorIds),
          });
          setSelectedTenorIds(new Set(updated.tenor_ids || []));
+         if (onSave) onSave(updated);
          onClose();
       } catch (err) {
          console.error("Error saving tenor selection:", err);
@@ -86,11 +88,11 @@ export default function TenorSelectionModal({ open, onClose, promoId, storeId, p
                <CardContent>
                   {loading ? (
                      <div className="text-sm text-muted-foreground">Loading...</div>
-                  ) : tenors.length === 0 ? (
-                     <div className="text-sm text-muted-foreground">No tenors available for this promo.</div>
+                  ) : tenors.filter(t => t.is_available).length === 0 ? (
+                     <div className="text-sm text-muted-foreground">No available tenors for this promo.</div>
                   ) : (
                      <div className="grid grid-cols-1 gap-2 max-h-[400px] overflow-y-auto">
-                        {tenors.map((tenor) => {
+                        {tenors.filter(t => t.is_available).map((tenor) => {
                            const isSelected = selectedTenorIds.has(tenor.id);
                            return (
                               <label
@@ -123,7 +125,7 @@ export default function TenorSelectionModal({ open, onClose, promoId, storeId, p
 
                   <div className="mt-4 flex justify-between items-center">
                      <div className="text-sm text-muted-foreground">
-                        {selectedTenorIds.size} of {tenors.length} selected
+                        {selectedTenorIds.size} of {tenors.filter(t => t.is_available).length} selected
                      </div>
                      <div className="flex gap-2">
                         <Button type="button" variant="outline" onClick={onClose}>
