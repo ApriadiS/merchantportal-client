@@ -307,9 +307,14 @@ export default function PromoViewModal({
             onClose={() => {
                setShowTenorModal(false);
                if (promo) {
-                  getAllPromoTenors({ promo_id: String(promo.id_promo) }).then(
-                     (data) => setTenors(data)
-                  );
+                  getAllPromoTenors({ promo_id: String(promo.id_promo) })
+                     .then((data) => {
+                        data.sort((a, b) => a.tenor - b.tenor);
+                        setTenors(data);
+                     })
+                     .catch((err) => {
+                        console.error("Error refreshing tenors:", err);
+                     });
                }
             }}
             promoId={promo.id_promo}
