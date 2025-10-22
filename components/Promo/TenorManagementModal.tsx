@@ -75,6 +75,7 @@ export default function TenorManagementModal({ open, onClose, promoId, promoTitl
 
    const handleSubmit = async (e: React.FormEvent) => {
       e.preventDefault();
+      if (loading) return;
       setLoading(true);
       try {
          const payload = {
@@ -105,6 +106,7 @@ export default function TenorManagementModal({ open, onClose, promoId, promoTitl
    };
 
    const handleDelete = async (id: string) => {
+      if (loading) return;
       if (!confirm("Delete this tenor?")) return;
       setLoading(true);
       try {
@@ -162,8 +164,9 @@ export default function TenorManagementModal({ open, onClose, promoId, promoTitl
                                              variant="destructive"
                                              size="sm"
                                              onClick={() => handleDelete(t.id)}
+                                             disabled={loading}
                                           >
-                                             Delete
+                                             {loading ? "Deleting..." : "Delete"}
                                           </Button>
                                        </div>
                                     </div>

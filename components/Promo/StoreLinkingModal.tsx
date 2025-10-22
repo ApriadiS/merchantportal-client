@@ -59,7 +59,9 @@ export default function StoreLinkingModal({ open, onClose, promoId, promoTitle }
    };
 
    const handleToggle = async (storeId: string) => {
+      if (loading) return;
       const isCurrentlyLinked = linkedStoreIds.has(storeId);
+      setLoading(true);
       try {
          if (isCurrentlyLinked) {
             await deletePromoStore(promoId, storeId);
@@ -104,6 +106,8 @@ export default function StoreLinkingModal({ open, onClose, promoId, promoTitle }
       } catch (err) {
          console.error("Error toggling store:", err);
          pushToast({ type: "error", message: "Failed to toggle store" });
+      } finally {
+         setLoading(false);
       }
    };
 
@@ -197,8 +201,9 @@ export default function StoreLinkingModal({ open, onClose, promoId, promoTitle }
                                        variant={isLinked ? "destructive" : "default"}
                                        size="sm"
                                        onClick={() => handleToggle(store.id)}
+                                       disabled={loading}
                                     >
-                                       {isLinked ? "Unlink" : "Link"}
+                                       {loading ? "Processing..." : isLinked ? "Unlink" : "Link"}
                                     </Button>
                                  </div>
                               </div>

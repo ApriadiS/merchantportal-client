@@ -58,6 +58,7 @@ export default function StoreFormModal({
 
    const handleSubmit = async (e: React.FormEvent) => {
       e.preventDefault();
+      if (loading) return;
       setLoading(true);
       try {
          const errs: Record<string, string> = {};
