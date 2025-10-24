@@ -1,4 +1,4 @@
-# 🏪 Merchant Portal Client v2.2.6
+# 🏪 Merchant Portal Client v2.2.7
 
 A modern Next.js application for managing merchant stores and promotional campaigns with installment calculation features.
 
@@ -196,6 +196,35 @@ npm run build
 # Deploy .next folder to your hosting
 ```
 
+## 📊 What's New in v2.2.7
+
+### 🐛 Critical Bug Fix
+
+**Issue #18: Type Mismatch - PromoResponse.id_promo**
+- ✅ Fixed `id_promo` type from `number` to `string` (UUID)
+- ✅ Synced all interfaces with backend v1.2.0
+- ✅ Update promo now works correctly in production
+- ✅ All UUID fields now properly typed as `string`
+
+### 🧹 Code Quality Improvement
+
+**Issue #19: Redundant Type Definitions**
+- ✅ Reorganized type system for clarity
+- ✅ `utils/interface.ts`: All interfaces (synced with backend v1.2.0)
+- ✅ `types/index.ts`: Only type aliases, unions, enums
+- ✅ Removed deprecated types (PromoObject, StoreObject, etc.)
+- ✅ Added backward compatibility exports
+
+### 📝 Files Modified
+- `utils/interface.ts` - Reorganized interfaces, synced with backend v1.2.0
+- `types/index.ts` - Cleaned up to contain only type definitions
+- `BUGS_HUNTER.md` - Added Bug 10 & 11, marked as fixed
+
+### 🔄 Breaking Changes
+- None - Backward compatible via re-exports
+
+---
+
 ## 📊 What's New in v2.2.6
 
 ### 🐛 Medium Priority Bug Fixes
@@ -335,5 +364,5 @@ For support, email apriadisalim007@gmail.com or open an issue in the repository.
 
 **Built with ❤️ using Next.js, Rust, and Supabase**
 
-**Version**: 2.2.6  
+**Version**: 2.2.7  
 **Last Updated**: January 2025
