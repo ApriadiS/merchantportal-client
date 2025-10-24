@@ -28,6 +28,18 @@ export default function TenorSelectionModal({ open, onClose, promoId, storeId, p
       // eslint-disable-next-line react-hooks/exhaustive-deps
    }, [open, promoId, storeId]);
 
+   useEffect(() => {
+      const availableTenors = tenors.filter(t => t.is_available);
+      if (availableTenors.length === 1 && !loading) {
+         const tenorId = availableTenors[0].id;
+         setSelectedTenorIds(new Set([tenorId]));
+         setTimeout(() => {
+            handleSave();
+         }, 300);
+      }
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+   }, [tenors, loading]);
+
    const fetchData = async () => {
       setLoading(true);
       try {

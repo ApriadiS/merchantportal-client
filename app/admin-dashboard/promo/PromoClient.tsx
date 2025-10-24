@@ -18,7 +18,7 @@ import { deletePromo } from "@services/api/promos";
 type PromoWithCount = PromoResponse & { storeCount?: number };
 
 export default function PromoClient() {
-   const { promos, loading: promosLoading, removePromo } = usePromoList();
+   const { promos, loading: promosLoading, addPromo, updatePromo, removePromo } = usePromoList();
    const { q, setQ, filtered: finalFiltered } = usePromoFilters(promos);
    const [deleteTarget, setDeleteTarget] = useState<PromoWithCount | null>(
       null
@@ -131,8 +131,14 @@ export default function PromoClient() {
                setIsCreateOpen(false);
                setEditingPromo(null);
             }}
-            onCreated={() => window.location.reload()}
-            onUpdated={() => window.location.reload()}
+            onCreated={(promo) => {
+               addPromo(promo);
+               push({ type: "success", message: "Promo berhasil ditambahkan" });
+            }}
+            onUpdated={(promo) => {
+               updatePromo(promo);
+               push({ type: "success", message: "Promo berhasil diperbarui" });
+            }}
          />
          <PromoViewModal
             open={Boolean(viewPromo)}

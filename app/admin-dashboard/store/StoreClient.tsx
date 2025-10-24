@@ -16,7 +16,7 @@ import { useStoreFilters } from "@/hooks/useStoreFilters";
 import Toast from "@components/shared/Toast";
 
 export default function StoreClient() {
-   const { stores, loading: isLoading, removeStore } = useStoreList();
+   const { stores, loading: isLoading, addStore, updateStore, removeStore } = useStoreList();
    const { q, setQ, filtered: finalFiltered } = useStoreFilters(stores);
    const [deleteTarget, setDeleteTarget] = useState<StoreResponse | null>(null);
    const [isDeleteOpen, setIsDeleteOpen] = useState(false);
@@ -209,8 +209,14 @@ export default function StoreClient() {
                setIsCreateOpen(false);
                setEditingStore(null);
             }}
-            onCreated={() => window.location.reload()}
-            onUpdated={() => window.location.reload()}
+            onCreated={(store) => {
+               addStore(store);
+               pushToast({ type: "success", message: "Store berhasil ditambahkan" });
+            }}
+            onUpdated={(store) => {
+               updateStore(store);
+               pushToast({ type: "success", message: "Store berhasil diperbarui" });
+            }}
          />
          <StoreViewModal
             open={Boolean(viewingStore)}
