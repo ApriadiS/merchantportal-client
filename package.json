@@ -1,11 +1,11 @@
 {
    "name": "merchantportal-client",
-   "version": "2.1.0",
+   "version": "2.2.6",
    "private": true,
    "scripts": {
-      "dev": "next dev --turbopack -p 3001",
+      "dev": "next dev --turbopack -p 5421",
       "build": "next build",
-      "start": "next start -p 3001",
+      "start": "next start -p 5421",
       "lint": "eslint",
       "analyze": "cross-env ANALYZE=true next build",
       "clean": "rimraf .next"

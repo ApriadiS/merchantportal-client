@@ -1,4 +1,4 @@
-# 🏪 Merchant Portal Client v2.2.2
+# 🏪 Merchant Portal Client v2.2.6
 
 A modern Next.js application for managing merchant stores and promotional campaigns with installment calculation features.
 
@@ -196,6 +196,31 @@ npm run build
 # Deploy .next folder to your hosting
 ```
 
+## 📊 What's New in v2.2.6
+
+### 🐛 Medium Priority Bug Fixes
+
+**1. Stale Data After Mutation (Issue #12)**
+- ✅ Replaced full page reload with optimistic updates
+- ✅ PromoClient uses addPromo/updatePromo for instant UI updates
+- ✅ StoreClient uses addStore/updateStore for instant UI updates
+- ✅ Eliminates window.location.reload(), improves UX
+
+**2. No Loading State Coordination (Issue #13)**
+- ✅ Implicitly fixed by removing full page reloads
+- ✅ Local state updates are instant, no overlapping loaders
+- ✅ Each component manages loading independently
+
+**3. Tenor Selection Modal Auto-Close (Issue #14)**
+- ✅ Auto-selects and auto-closes when only 1 tenor available
+- ✅ 300ms delay for smooth transition
+- ✅ Reduces extra click for single tenor scenarios
+
+### 🔄 Breaking Changes
+- None - All changes backward compatible
+
+---
+
 ## 📊 What's New in v2.2.2
 
 ### UX Improvements
@@ -261,6 +286,21 @@ npm run build
 - Database schema: promo_store.tenor_ids uuid[] field
 - All promo CRUD now includes interest_rate, admin_promo_type, discount_type
 
+## 🐛 Bug Tracking
+
+**BUGS_HUNTER.md Convention**:
+- Local bug numbering: Bug 1, Bug 2, Bug 3 (sequential in BUGS_HUNTER.md)
+- GitHub issue numbering: #157, #158, #159 (depends on repo's total issue count)
+- After creating GitHub issue: Update BUGS_HUNTER.md with "Bug 1 → Issue #157"
+- Bug numbers ≠ Issue numbers (unless it's the first issue in repo)
+
+**Example**:
+```markdown
+### [ ] Bug 1: Race Condition → Issue #157
+**Found**: 2025-01-19
+**GitHub**: https://github.com/user/repo/issues/157
+```
+
 ## 🤝 Contributing
 
 1. Fork the repository
@@ -289,9 +329,11 @@ This project is licensed under the MIT License.
 
 For support, email apriadisalim007@gmail.com or open an issue in the repository.
 
+**Note**: When referencing bugs in commit messages, use GitHub issue numbers (#157), not local bug numbers (Bug 1).
+
 ---
 
 **Built with ❤️ using Next.js, Rust, and Supabase**
 
-**Version**: 2.2.2  
+**Version**: 2.2.6  
 **Last Updated**: January 2025
