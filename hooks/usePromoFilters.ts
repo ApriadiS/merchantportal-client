@@ -38,10 +38,7 @@ export function usePromoFilters(promos: PromoResponse[]) {
          const term = q.trim().toLowerCase();
          if (term) {
             const matches =
-               (p.title_promo || "").toLowerCase().includes(term) ||
-               (p.voucher_code || "").toLowerCase().includes(term) ||
-               String(p.min_transaction_promo || "").includes(term) ||
-               String(p.tenor_promo || "").includes(term);
+               (p.title_promo || "").toLowerCase().includes(term);
             if (!matches) return false;
          }
 

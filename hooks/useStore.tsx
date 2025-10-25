@@ -1,4 +1,6 @@
-import { StoreObject } from "@/utils/interface";
+import type { Store } from "@/utils/interface";
+
+type StoreObject = Store;
 import React, { createContext, useContext, useState, ReactNode } from "react";
 
 const StoreContext = createContext<{

@@ -30,11 +30,11 @@ export default function PromoClient() {
 
    const { push } = useToast();
 
-   const handleDelete = async (voucher?: string) => {
-      if (!voucher) return;
+   const handleDelete = async (id?: string) => {
+      if (!id) return;
       try {
-         await deletePromo(voucher);
-         removePromo(voucher);
+         await deletePromo(id);
+         removePromo(id);
          setIsDeleteOpen(false);
          setDeleteTarget(null);
          push({ type: "success", message: "Promo berhasil dihapus" });
@@ -171,7 +171,7 @@ export default function PromoClient() {
                            bgColorHover: "bg-red-600",
                            textColorHover: "text-white",
                            onclick: () =>
-                              handleDelete(deleteTarget.voucher_code),
+                              handleDelete(deleteTarget.id_promo),
                         },
                         {
                            label: "Batal",

@@ -1,5 +1,7 @@
 import { apiRequest } from "./client";
-import type { PromoResponse, PromoRequest } from "@/utils/interface";
+import type { PromoResponse, CreatePromoPayload } from "@/utils/interface";
+
+type PromoRequest = CreatePromoPayload;
 
 // ============================================================================
 // Public Endpoints (No Auth)

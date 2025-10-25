@@ -1,4 +1,6 @@
-import { PromoObject } from "@/utils/interface";
+import type { PromoTenor } from "@/utils/interface";
+
+type PromoObject = PromoTenor & { title_promo?: string };
 import React, { createContext, useContext, useState, ReactNode } from "react";
 
 const PromoContext = createContext<{

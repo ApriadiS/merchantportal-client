@@ -3,7 +3,9 @@ import React, { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
-import type { StoreRequest, StoreResponse } from "@/utils/interface";
+import type { CreateStorePayload, StoreResponse } from "@/utils/interface";
+
+type StoreRequest = CreateStorePayload;
 import { createStore, updateStore } from "@services/api/stores";
 import { useToast } from "@/hooks/useToast-old";
 

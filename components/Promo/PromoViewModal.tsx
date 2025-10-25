@@ -101,48 +101,12 @@ export default function PromoViewModal({
                                  <dt className="text-xs text-muted-foreground">Title</dt>
                                  <dd className="font-medium">{promo.title_promo}</dd>
                               </div>
-                              <div className="col-span-2">
-                                 <dt className="text-xs text-muted-foreground">Voucher Code</dt>
-                                 <dd className="font-medium">{promo.voucher_code}</dd>
-                              </div>
-                              <div className="col-span-2">
-                                 <dt className="text-xs text-muted-foreground">Min Transaction</dt>
-                                 <dd className="font-medium">{formatCurrency(promo.min_transaction_promo)}</dd>
-                              </div>
-                              <div>
-                                 <dt className="text-xs text-muted-foreground">Tenor</dt>
-                                 <dd className="font-medium">{promo.tenor_promo} bulan</dd>
-                              </div>
-                              <div>
-                                 <dt className="text-xs text-muted-foreground">Subsidi</dt>
-                                 <dd className="font-medium">{formatPercent(promo.subsidi_promo, 2)}</dd>
-                              </div>
-                              <div>
-                                 <dt className="text-xs text-muted-foreground">Admin</dt>
-                                 <dd className="font-medium">{formatAdmin(promo.admin_promo, promo.admin_promo_type)}</dd>
-                              </div>
+
                               <div>
                                  <dt className="text-xs text-muted-foreground">Interest Rate</dt>
                                  <dd className="font-medium">{promo.interest_rate}%</dd>
                               </div>
-                              <div>
-                                 <dt className="text-xs text-muted-foreground">Free Installment</dt>
-                                 <dd className="font-medium">{promo.free_installment}</dd>
-                              </div>
-                              {promo.discount !== undefined && (
-                                 <div>
-                                    <dt className="text-xs text-muted-foreground">Discount</dt>
-                                    <dd className="font-medium">
-                                       {promo.discount_type === "PERCENT" ? `${promo.discount}%` : formatCurrency(promo.discount)}
-                                    </dd>
-                                 </div>
-                              )}
-                              {promo.max_discount !== undefined && (
-                                 <div>
-                                    <dt className="text-xs text-muted-foreground">Max Discount</dt>
-                                    <dd className="font-medium">{formatCurrency(promo.max_discount)}</dd>
-                                 </div>
-                              )}
+
                               <div className="col-span-2">
                                  <dt className="text-xs text-muted-foreground">Periode</dt>
                                  <dd className="font-medium">
@@ -317,7 +281,7 @@ export default function PromoViewModal({
                      });
                }
             }}
-            promoId={promo.id_promo}
+            promoId={String(promo.id_promo)}
             promoTitle={promo.title_promo}
          />
          <StoreLinkingModal

@@ -1,4 +1,9 @@
-import { ItemStoreProps } from "@utils/interface";
+import type { Store } from "@utils/interface";
+
+interface ItemStoreProps {
+   data: Store;
+   buttons: Array<{ label: string; onclick: () => void }>;
+}
 
 export default function ItemStore({ data, buttons }: ItemStoreProps) {
    return (

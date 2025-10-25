@@ -71,8 +71,8 @@ export function usePromoList() {
       );
    }, []);
 
-   const removePromo = useCallback((voucherCode: string) => {
-      setPromos((prev) => prev.filter((s) => s.voucher_code !== voucherCode));
+   const removePromo = useCallback((id: string) => {
+      setPromos((prev) => prev.filter((s) => s.id_promo !== id));
    }, []);
 
    return {

@@ -9,7 +9,7 @@ import type { PromoTenor } from "@/types";
 interface Props {
    open: boolean;
    onClose: () => void;
-   promoId: number;
+   promoId: string;
    promoTitle: string;
 }
 

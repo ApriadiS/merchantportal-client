@@ -1,7 +1,10 @@
 import type { ItemType } from "@utils/types";
 import ItemStore from "../Store/Item";
 import ItemPromo from "../Promo/Item";
-import { PromoObject, StoreObject } from "@/utils/interface";
+import type { Store, PromoTenor } from "@/utils/interface";
+
+type StoreObject = Store;
+type PromoObject = PromoTenor & { title_promo?: string };
 import { useEffect } from "react";
 
 interface CRUDComponentProps {
@@ -50,7 +53,7 @@ export default function CRUDComponent({
                   <ItemPromo
                      key={index}
                      data={promo}
-                     dataStores={dataRelated?.get(promo.title_promo) || []}
+                     dataStores={dataRelated?.get(promo.title_promo || "") || []}
                      buttons={buttons || []}
                   />
                ))}
