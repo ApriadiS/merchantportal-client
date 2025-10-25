@@ -52,7 +52,9 @@ export const useInstallmentCalculator = () => {
 
          if (matchingTenor) {
             const promo = promoMap.get(matchingTenor.promo_id);
-            rate = promo?.interest_rate ? promo.interest_rate / 100 : MONTHLY_RATE;
+            rate = (promo?.interest_rate !== undefined && promo.interest_rate >= 0)
+               ? promo.interest_rate / 100 
+               : MONTHLY_RATE;
             
             // Admin: FIX (Rp) atau PERCENT (%)
             if (promo?.admin_promo_type === 'PERCENT') {

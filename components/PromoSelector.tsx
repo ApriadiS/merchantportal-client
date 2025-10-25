@@ -27,7 +27,7 @@ function PromoSelector({
             const promo = promos.find(p => String(p.id_promo) === tenor.promo_id);
             groups.set(tenor.promo_id, {
                promo_id: tenor.promo_id,
-               title: promo?.title_promo || `Promo ${tenor.promo_id.slice(0, 8)}`
+               title: promo?.title_promo || "Promo Tanpa Judul"
             });
          }
       });
