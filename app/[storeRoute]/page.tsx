@@ -2,7 +2,7 @@
 import React, { useState, useMemo } from "react";
 import Link from "next/link";
 import { getStoreByRoutePublic, getPromoTenorsByStoreIdPublic } from "@/services/api/public";
-import { getPromosByStoreIdPublic } from "@/services/api/promos";
+import { getPromoByIdPublic } from "@/services/api/promos";
 import { StoreResponse, PromoResponse } from "@/utils/interface";
 import { PromoTenor } from "@/types";
 import { useInstallmentCalculator } from "@/hooks/useInstallmentCalculator";
@@ -64,15 +64,16 @@ export default function StoreSimulasiPage({ params }: Props) {
 
             setStore(storeRes);
 
-            const [tenorResults, promoResults] = await Promise.all([
-               getPromoTenorsByStoreIdPublic(String(storeRes.id)),
-               getPromosByStoreIdPublic(String(storeRes.id))
-            ]);
-            
+            const tenorResults = await getPromoTenorsByStoreIdPublic(String(storeRes.id));
             const availableTenors = tenorResults.filter(t => t.is_available);
             setTenors(availableTenors);
-            setPromos(promoResults);
             
+            // Get unique promo_ids and fetch promo details
+            const uniquePromoIds = [...new Set(availableTenors.map(t => t.promo_id))];
+            const promoPromises = uniquePromoIds.map(id => getPromoByIdPublic(id));
+            const promoResults = (await Promise.all(promoPromises)).filter(p => p !== null) as PromoResponse[];
+            
+            setPromos(promoResults);
             const map = new Map<string, PromoResponse>();
             promoResults.forEach(p => map.set(String(p.id_promo), p));
             setPromoMap(map);

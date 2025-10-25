@@ -21,6 +21,13 @@ export async function getPromosByStoreIdPublic(storeId: string): Promise<PromoRe
    return response.json();
 }
 
+export async function getPromoByIdPublic(id: string): Promise<PromoResponse | null> {
+   const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
+   const response = await fetch(`${API_URL}/get-promo/${id}`);
+   if (!response.ok) return null;
+   return response.json();
+}
+
 // ============================================================================
 // Protected Endpoints (Auth Required)
 // ============================================================================
