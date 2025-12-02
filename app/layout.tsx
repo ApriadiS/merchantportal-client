@@ -41,8 +41,8 @@ export default function RootLayout({
    children: React.ReactNode;
 }>) {
    return (
-      <html lang="id">
-         <body className={poppins.className}>
+      <html lang="id" suppressHydrationWarning>
+         <body className={poppins.className} suppressHydrationWarning>
             {children}
             <VercelIntegration />
          </body>
