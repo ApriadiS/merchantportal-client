@@ -35,15 +35,15 @@ export default function TenorManagementModal({ open, onClose, promoId, promoTitl
       // eslint-disable-next-line react-hooks/exhaustive-deps
    }, [open, promoId]);
 
-   const fetchTenors = async () => {
-      setLoading(true);
+   const fetchTenors = async (showLoading = true) => {
+      if (showLoading) setLoading(true);
       try {
          const data = await getAllPromoTenors({ promo_id: String(promoId) });
          setTenors(data);
       } catch (err) {
          console.error("Error fetching tenors:", err);
       } finally {
-         setLoading(false);
+         if (showLoading) setLoading(false);
       }
    };
 
@@ -96,10 +96,12 @@ export default function TenorManagementModal({ open, onClose, promoId, promoTitl
          } else {
             await createPromoTenor(payload);
          }
+         
          resetForm();
-         fetchTenors();
+         await fetchTenors();
       } catch (err) {
          console.error("Error saving tenor:", err);
+         alert(`Failed to save tenor: ${err instanceof Error ? err.message : String(err)}`);
       } finally {
          setLoading(false);
       }
@@ -111,7 +113,7 @@ export default function TenorManagementModal({ open, onClose, promoId, promoTitl
       setLoading(true);
       try {
          await deletePromoTenor(id);
-         fetchTenors();
+         await fetchTenors(false);
       } catch (err) {
          console.error("Error deleting tenor:", err);
       } finally {

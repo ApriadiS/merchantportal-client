@@ -14,14 +14,25 @@ export function usePromoList() {
       setLoading(true);
       setError(null);
       try {
+         console.log('🔵 Fetching promos...');
          const pRows = await getAllPromos();
+         console.log('✅ Promos fetched:', pRows.length, 'items');
 
          let psRows: Awaited<ReturnType<typeof getAllPromoStores>> = [];
          try {
-            psRows = await getAllPromoStores();
-         } catch {
+            console.log('🔵 Fetching promo stores...');
+            const timeoutPromise = new Promise((_, reject) => 
+               setTimeout(() => reject(new Error('Timeout')), 5000)
+            );
+            psRows = await Promise.race([
+               getAllPromoStores(),
+               timeoutPromise
+            ]) as Awaited<ReturnType<typeof getAllPromoStores>>;
+            console.log('✅ Promo stores fetched:', psRows.length, 'items');
+         } catch (err) {
             console.warn(
-               "PromoStores not found (404), continuing with empty array"
+               "PromoStores fetch failed, continuing with empty array:",
+               err instanceof Error ? err.message : err
             );
          }
 
@@ -41,7 +52,8 @@ export function usePromoList() {
          );
          mappedPromos.sort((a, b) => a.title_promo.localeCompare(b.title_promo));
 
-         console.log("Mapped promos:", mappedPromos);
+         console.log("✅ Mapped promos:", mappedPromos.length, 'items');
+         console.log("📊 Promo details:", mappedPromos);
          setPromos(mappedPromos);
       } catch (err) {
          console.error("Error fetching promos:", err);
